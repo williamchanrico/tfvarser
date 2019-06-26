@@ -20,40 +20,6 @@ type ScalingGroup struct {
 	MultiAZPolicy    string
 }
 
-// ScalingGroupTmpl is the tfvars template
-var ScalingGroupTmpl = `
-terragrunt = {
-  include {
-    path = "${find_in_parent_folders()}"
-  }
-  terraform {
-    source = "git::git@github.com:tokopedia/tf-alicloud-modules.git//ess-scaling-group"
-  }
-}
-
-# Name of the scaling group
-esssg_name = "tf-{{ .ScalingGroupName }}"
-
-# Minimum and maximum number of VMs in the scaling group
-esssg_min_size = {{ .MinSize }}
-esssg_max_size = {{ .MaxSize }}
-
-# When downscaling, this specifies the order of VMs selected for removal
-esssg_removal_policies = [
-{{ range $index, $element := .RemovalPolicies }}{{- if $index }},
-{{- end }}{{ if not $index }} {{ end }} "{{ $element -}}"{{ end }}
-]
-
-# VSwitches that will be used for created VMs, selection algorithm is based on esssg_multi_az_policy
-esssg_vsw_ids          = [
-{{ range $index, $element := .VSwitchIDs }}{{- if $index }},
-{{- end }}{{ if not $index }} {{ end }} "{{ $element -}}"{{ end }}
-]
-
-# The order of VSwitches selected when creating new VMs
-esssg_multi_az_policy  = "{{ .MultiAZPolicy }}"
-`
-
 // GetScalingGroups will query list of scaling groups
 func (c *Client) GetScalingGroups(ctx context.Context) ([]ScalingGroup, error) {
 	ctx, cancel := context.WithCancel(ctx)

@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"path"
-	"text/template"
 
-	"github.com/williamchanrico/tfvarser/aliyun/ess"
+	"github.com/williamchanrico/tfvarser/aliyun"
+	"github.com/williamchanrico/tfvarser/tfvars"
+	tfvarsaliyun "github.com/williamchanrico/tfvarser/tfvars/aliyun"
 )
 
 func aliyunProvider(appFlags *Flags, cfg Config) (int, error) {
@@ -22,7 +22,7 @@ func aliyunProvider(appFlags *Flags, cfg Config) (int, error) {
 }
 
 func aliyunESSObj(appFlags *Flags, cfg Config) (int, error) {
-	essclient, err := ess.New(&ess.Config{
+	aliClient, err := aliyun.New(aliyun.Config{
 		AccessKey: cfg.AlicloudAccessKey,
 		SecretKey: cfg.AlicloudSecretKey,
 		RegionID:  cfg.AlicloudRegionID,
@@ -31,112 +31,76 @@ func aliyunESSObj(appFlags *Flags, cfg Config) (int, error) {
 		return 1, err
 	}
 
-	scalingGroups, err := essclient.GetScalingGroups(context.Background())
+	scalingGroups, err := aliClient.ESS.GetScalingGroups(context.Background())
 	if err != nil {
 		return 1, err
 	}
 
-	tScalingGroup := template.Must(template.New("scalingGroup").Parse(ess.ScalingGroupTmpl))
-	tScalingRule := template.Must(template.New("scalingRule").Parse(ess.ScalingRuleTmpl))
-	tAlarm := template.Must(template.New("alarm").Parse(ess.AlarmTmpl))
-	tLifecycleHook := template.Must(template.New("lifecycleHook").Parse(ess.LifecycleHookTmpl))
-	tScalingConfiguration := template.Must(template.New("scalingConfiguration").Parse(ess.ScalingConfigurationTmpl))
-
 	for _, sg := range scalingGroups {
-		fmt.Printf("Generating scaling group: %v\n", sg.ScalingGroupName)
-
 		serviceDir := path.Join(".", sg.ScalingGroupName, "autoscale")
-		makeDirIfNotExists(serviceDir)
 
 		scalingGroupDir := path.Join(serviceDir, "ess-scaling-group")
-		makeDirIfNotExists(scalingGroupDir)
-		f, err := os.Create(path.Join(scalingGroupDir, "terraform.tfvars"))
-		if err != nil {
-			fmt.Printf("Error %v: %v\n", sg.ScalingGroupName, err)
-			continue
-		}
-		tScalingGroup.Execute(f, sg)
-		f.Close()
+		sgGenerator := tfvars.New(tfvarsaliyun.NewScalingGroup(sg))
+		sgGenerator.Generate(scalingGroupDir, "terraform.tfvars")
 
-		scalingRules, err := essclient.GetScalingRules(sg.ScalingGroupID, sg.ScalingGroupName)
+		// // Scaling Rule
+		scalingRules, err := aliClient.ESS.GetScalingRules(sg.ScalingGroupID, sg.ScalingGroupName)
 		if err != nil {
 			return 1, err
 		}
-
+		scalingRuleParentDir := path.Join(serviceDir, "ess-scaling-rules")
 		for _, sr := range scalingRules {
-			scalingRuleParentDir := path.Join(serviceDir, "ess-scaling-rules")
-			makeDirIfNotExists(scalingRuleParentDir)
-
 			scalingRuleDir := path.Join(scalingRuleParentDir, sr.ScalingRuleName)
-			makeDirIfNotExists(scalingRuleDir)
-			f, err := os.Create(path.Join(scalingRuleDir, "terraform.tfvars"))
-			if err != nil {
-				fmt.Printf("Error %v: %v\n", sg.ScalingGroupName, err)
-				continue
-			}
-			tScalingRule.Execute(f, sr)
-			f.Close()
+			srGenerator := tfvars.New(tfvarsaliyun.NewScalingRule(sr))
+			srGenerator.Generate(scalingRuleDir, "terraform.tfvars")
 		}
 
-		alarms, err := essclient.GetAlarms(sg.ScalingGroupID, sg.ScalingGroupName)
+		// // Alarm / Event-trigger task
+		alarms, err := aliClient.ESS.GetAlarms(sg.ScalingGroupID, sg.ScalingGroupName)
 		if err != nil {
 			return 1, nil
 		}
-
 		alarmParentDir := path.Join(serviceDir, "ess-alarms")
-		makeDirIfNotExists(alarmParentDir)
 		for _, al := range alarms {
 			alarmDir := path.Join(alarmParentDir, al.AlarmName)
-			makeDirIfNotExists(alarmDir)
-			f, err := os.Create(path.Join(alarmDir, "terraform.tfvars"))
-			if err != nil {
-				fmt.Printf("Error %v: %v\n", sg.ScalingGroupName, err)
-				continue
-			}
-
-			tAlarm.Execute(f, al)
-			f.Close()
+			alGenerator := tfvars.New(tfvarsaliyun.NewAlarm(al))
+			alGenerator.Generate(alarmDir, "terraform.tfvars")
 		}
 
-		lifecycleHooks, err := essclient.GetLifecycleHooks(sg.ScalingGroupID, sg.ScalingGroupName)
+		// // Lifecycle Hook
+		lifecycleHooks, err := aliClient.ESS.GetLifecycleHooks(sg.ScalingGroupID, sg.ScalingGroupName)
 		if err != nil {
 			return 1, nil
 		}
-
 		lifecycleHookParentDir := path.Join(serviceDir, "ess-lifecycle-hooks")
-		makeDirIfNotExists(lifecycleHookParentDir)
 		for _, lh := range lifecycleHooks {
 			lifecycleHookDir := path.Join(lifecycleHookParentDir, lh.LifecycleHookName)
-			makeDirIfNotExists(lifecycleHookDir)
-			f, err := os.Create(path.Join(lifecycleHookDir, "terraform.tfvars"))
-			if err != nil {
-				fmt.Printf("Error %v: %v\n", sg.ScalingGroupName, err)
-				continue
-			}
-
-			tLifecycleHook.Execute(f, lh)
-			f.Close()
+			lhGenerator := tfvars.New(tfvarsaliyun.NewLifecycleHook(lh))
+			lhGenerator.Generate(lifecycleHookDir, "terraform.tfvars")
 		}
 
-		scalingConfigurations, err := essclient.GetScalingConfigurations(sg.ScalingGroupID, sg.ScalingGroupName)
+		// // Scaling Configuration
+		scalingConfigurations, err := aliClient.ESS.GetScalingConfigurations(sg.ScalingGroupID, sg.ScalingGroupName)
 		if err != nil {
 			return 1, nil
 		}
-
 		scalingConfigurationParentDir := path.Join(serviceDir, "ess-scaling-configurations")
-		makeDirIfNotExists(scalingConfigurationParentDir)
 		for _, sc := range scalingConfigurations {
-			scalingConfigurationDir := path.Join(scalingConfigurationParentDir, sc.ScalingConfigurationName)
-			makeDirIfNotExists(scalingConfigurationDir)
-			f, err := os.Create(path.Join(scalingConfigurationDir, "terraform.tfvars"))
-			if err != nil {
-				fmt.Printf("Error %v: %v\n", sg.ScalingGroupName, err)
-				continue
+			// Template needs ImageName from ECS API
+			// if imageName is empty, it's fine for now
+			imageName, err := aliClient.ECS.GetImageNameByID(sc.ImageID)
+			if err == nil {
+				sc.ImageName = imageName
 			}
 
-			tScalingConfiguration.Execute(f, sc)
-			f.Close()
+			scalingConfigurationDir := path.Join(scalingConfigurationParentDir, sc.ScalingGroupName)
+			scGenerator := tfvars.New(tfvarsaliyun.NewScalingConfiguration(sc))
+			err = scGenerator.Generate(scalingConfigurationDir, "terraform.tfvars")
+			if err != nil {
+				fmt.Println("Scaling Configuration:", err)
+			}
 		}
+
 		break
 	}
 

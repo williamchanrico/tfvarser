@@ -14,32 +14,6 @@ type LifecycleHook struct {
 	HeartbeatTimeout    int
 }
 
-// LifecycleHookTmpl is the tfvars template
-var LifecycleHookTmpl = `
-terragrunt = {
-  include {
-    path = "${find_in_parent_folders()}"
-  }
-  terraform {
-    source = "git::git@github.com:tokopedia/tf-alicloud-modules.git//ess-lifecycle-hook"
-  }
-}
-
-# ESS scaling group
-esssg_remote_state_bucket = "tkpd-tg-alicloud"
-esssg_remote_state_key    = "{{ .ScalingGroupName }}/autoscale/ess-scaling-group/terraform.tfstate"
-
-# MNS queue
-mq_remote_state_bucket = "tkpd-tg-alicloud"
-mq_remote_state_key    = "general/mns-queues/autoscaledown-event/terraform.tfstate"
-
-# ESS lifecycle hook
-esslh_name                 = "{{ .LifecycleHookName }}"
-esslh_lifecycle_transition = "{{ .LifecycleTransition }}"
-esslh_default_result       = "{{ .DefaultResult }}"
-esslh_heartbeat_timeout    = {{ .HeartbeatTimeout }}
-`
-
 // GetLifecycleHooks returns list of lifecyclehooks
 // scalingGroupName is only used to fill the struct, not for the request
 func (c *Client) GetLifecycleHooks(scalingGroupID, scalingGroupName string) ([]LifecycleHook, error) {

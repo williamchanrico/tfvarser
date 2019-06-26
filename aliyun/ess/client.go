@@ -9,27 +9,9 @@ type Client struct {
 	ess *esssdk.Client
 }
 
-// Config contains ess client config
-type Config struct {
-	AccessKey string
-	SecretKey string
-	RegionID  string
-}
-
 // New returns a new ess client
-func New(c *Config) (*Client, error) {
-	// Create an ESS client
-	essClient, err := esssdk.NewClientWithAccessKey(
-		c.RegionID,
-		c.AccessKey,
-		c.SecretKey,
-	)
-	essClient.EnableAsync(5, 10)
-	if err != nil {
-		return nil, err
-	}
-
+func New(c *esssdk.Client) *Client {
 	return &Client{
-		ess: essClient,
-	}, nil
+		ess: c,
+	}
 }
