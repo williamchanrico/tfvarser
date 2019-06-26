@@ -3,6 +3,7 @@ package tfvarser
 import (
 	"context"
 	"errors"
+	"fmt"
 	"path"
 	"strings"
 
@@ -63,26 +64,14 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 		return 1, err
 	}
 
-	nameLimit := strings.Split(appFlags.LimitNames, " ,")
-	idLimit := strings.Split(appFlags.LimitIDs, " ,")
+	limitNames := strings.Split(appFlags.LimitNames, ",")
+	limitIDs := strings.Split(appFlags.LimitIDs, ",")
 
 	for _, sg := range scalingGroups {
-		ok := false
-		for _, name := range nameLimit {
-			if strings.Contains(sg.ScalingGroupName, name) {
-				ok = true
-				break
-			}
-		}
-		for _, id := range idLimit {
-			if sg.ScalingGroupID == id {
-				ok = true
-				break
-			}
-		}
-		if !ok {
+		if !(contains(limitNames, sg.ScalingGroupName) || contains(limitIDs, sg.ScalingGroupID)) {
 			continue
 		}
+		fmt.Printf("Generating tfvars for scaling group: %v\n", sg.ScalingGroupName)
 
 		serviceDir := path.Join(".", sg.ScalingGroupName, "autoscale")
 
@@ -148,4 +137,13 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 	}
 
 	return 0, nil
+}
+
+func contains(slice []string, str string) bool {
+	for _, s := range slice {
+		if s == str {
+			return true
+		}
+	}
+	return false
 }
