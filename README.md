@@ -7,6 +7,12 @@
 
 A quick hack to reduce toils in importing hundreds of scaling groups by hand
 
+### Installation
+
+`$ make go-build` will build the `tfvarser` binary in `./bin/tfvarser`
+
+You can also build it yourself using simple `gotools`
+
 ### Usage & Examples
 
 Requires some form of authentication to interact with cloud provider's API
