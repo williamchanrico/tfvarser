@@ -15,28 +15,6 @@ type ScalingRule struct {
 	Cooldown         int
 }
 
-// ScalingRuleTmpl is the tfvars template
-var ScalingRuleTmpl = `
-terragrunt = {
-  include {
-    path = "${find_in_parent_folders()}"
-  }
-  terraform {
-    source = "git::git@github.com:tokopedia/tf-alicloud-modules.git//ess-scaling-rule"
-  }
-}
-
-# ESS scaling group
-esssg_remote_state_bucket = "tkpd-tg-alicloud"
-esssg_remote_state_key    = "{{ .ScalingGroupName }}/autoscale/ess-scaling-group/terraform.tfstate"
-
-# ESS scaling rule
-esssr_scaling_rule_name = "{{ .ScalingRuleName }}"
-esssr_adjustment_type   = "{{ .AdjustmentType }}"
-esssr_adjustment_value  = "{{ .AdjustmentValue }}"
-esssr_cooldown          = {{ .Cooldown }}
-`
-
 // GetScalingRules returns list of scaling rule for the given scaling group
 // scalingGroupName is only used to fill the struct, not for the request
 func (c *Client) GetScalingRules(scalingGroupID, scalingGroupName string) ([]ScalingRule, error) {

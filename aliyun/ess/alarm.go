@@ -1,6 +1,8 @@
 package ess
 
 import (
+	"fmt"
+
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	esssdk "github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 )
@@ -18,36 +20,6 @@ type Alarm struct {
 	Threshold          float64
 	EvaluationCount    int
 }
-
-// AlarmTmpl is the tfvars template
-var AlarmTmpl = `
-terragrunt = {
-  include {
-    path = "${find_in_parent_folders()}"
-  }
-  terraform {
-    source = "git::git@github.com:tokopedia/tf-alicloud-modules.git//ess-alarm"
-  }
-}
-
-# ESS scaling group
-esssg_remote_state_bucket = "tkpd-tg-alicloud"
-esssg_remote_state_key    = "{{ .ScalingGroupName }}/autoscale/ess-scaling-group/terraform.tfstate"
-
-# ESS scaling rule
-esssr_remote_state_bucket = "tkpd-tg-alicloud"
-esssr_remote_state_key    = "{{ .ScalingGroupName }}/autoscale/ess-scaling-rules/auto-downscale/terraform.tfstate"
-
-# ESS alarm
-essa_name                = "{{ .AlarmName }}"
-essa_metric_type         = "{{ .MetricType }}"
-essa_metric_name         = "{{ .MetricName }}"
-essa_period              = {{ .Period }}
-essa_statistics          = "{{ .Statistics }}"
-essa_comparison_operator = "{{ .ComparisonOperator }}"
-essa_threshold           = {{ .Threshold }}
-essa_evaluation_count    = {{ .EvaluationCount }}
-`
 
 // GetAlarms returns list of scaling rule for the given scaling group
 // scalingGroupName is only used to fill the struct, not for the request
@@ -74,6 +46,7 @@ func (c *Client) GetAlarms(scalingGroupID, scalingGroupName string) ([]Alarm, er
 			alarm.Period = al.Period
 			alarm.Statistics = al.Statistics
 			alarm.ComparisonOperator = al.ComparisonOperator
+			fmt.Println("COMPARISON OPERATOR DEBUG:", al.ComparisonOperator)
 			alarm.Threshold = al.Threshold
 			alarm.EvaluationCount = al.EvaluationCount
 
