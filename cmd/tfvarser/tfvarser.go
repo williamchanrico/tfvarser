@@ -8,6 +8,8 @@ import (
 type Flags struct {
 	Provider    string
 	ProviderObj string
+	LimitNames  string
+	LimitIDs    string
 }
 
 // Config contains tfvars config

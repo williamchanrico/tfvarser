@@ -1,8 +1,6 @@
 package ess
 
 import (
-	"fmt"
-
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	esssdk "github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 )
@@ -46,7 +44,6 @@ func (c *Client) GetAlarms(scalingGroupID, scalingGroupName string) ([]Alarm, er
 			alarm.Period = al.Period
 			alarm.Statistics = al.Statistics
 			alarm.ComparisonOperator = al.ComparisonOperator
-			fmt.Println("COMPARISON OPERATOR DEBUG:", al.ComparisonOperator)
 			alarm.Threshold = al.Threshold
 			alarm.EvaluationCount = al.EvaluationCount
 

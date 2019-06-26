@@ -3,8 +3,8 @@ package tfvarser
 import (
 	"context"
 	"errors"
-	"fmt"
 	"path"
+	"strings"
 
 	"github.com/williamchanrico/tfvarser/aliyun"
 	"github.com/williamchanrico/tfvarser/tfvars"
@@ -14,14 +14,41 @@ import (
 func aliyunProvider(appFlags *Flags, cfg Config) (int, error) {
 	switch appFlags.ProviderObj {
 	case "ess":
-		return aliyunESSObj(appFlags, cfg)
+		return aliyunAutoscaleObjects(appFlags, cfg)
 
 	default:
 		return 1, errors.New("Object is not supported")
 	}
 }
 
-func aliyunESSObj(appFlags *Flags, cfg Config) (int, error) {
+// aliyunAutoscaleObjects generates autoscale related objects
+// generated structure:
+// ├── testapp
+// │   ├── autoscale
+// │   │   ├── ess-alarms
+// │   │   │   ├── go-testapp-downscale
+// │   │   │   │   └── terraform.tfvars
+// │   │   │   └── go-testapp-upscale
+// │   │   │       └── terraform.tfvars
+// │   │   ├── ess-lifecycle-hooks
+// │   │   │   ├── autoscaledown-event-mns-queue
+// │   │   │   │   └── terraform.tfvars
+// │   │   │   └── autoscaleup-event-mns-queue
+// │   │   │       └── terraform.tfvars
+// │   │   ├── ess-scaling-configurations
+// │   │   │   ├── go-testapp-1c-1gb
+// │   │   │   │   └── terraform.tfvars
+// │   │   │   └── go-testapp-1c-500mb
+// │   │   │       └── terraform.tfvars
+// │   │   ├── ess-scaling-group
+// │   │   │   └── terraform.tfvars
+// │   │   └── ess-scaling-rules
+// │   │       ├── auto-downscale
+// │   │       │   └── terraform.tfvars
+// │   │       └── auto-upscale
+// │   │           └── terraform.tfvars
+//
+func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 	aliClient, err := aliyun.New(aliyun.Config{
 		AccessKey: cfg.AlicloudAccessKey,
 		SecretKey: cfg.AlicloudSecretKey,
@@ -36,14 +63,35 @@ func aliyunESSObj(appFlags *Flags, cfg Config) (int, error) {
 		return 1, err
 	}
 
+	nameLimit := strings.Split(appFlags.LimitNames, " ,")
+	idLimit := strings.Split(appFlags.LimitIDs, " ,")
+
 	for _, sg := range scalingGroups {
+		ok := false
+		for _, name := range nameLimit {
+			if strings.Contains(sg.ScalingGroupName, name) {
+				ok = true
+				break
+			}
+		}
+		for _, id := range idLimit {
+			if sg.ScalingGroupID == id {
+				ok = true
+				break
+			}
+		}
+		if !ok {
+			continue
+		}
+
 		serviceDir := path.Join(".", sg.ScalingGroupName, "autoscale")
 
+		// Scaling Group
 		scalingGroupDir := path.Join(serviceDir, "ess-scaling-group")
 		sgGenerator := tfvars.New(tfvarsaliyun.NewScalingGroup(sg))
 		sgGenerator.Generate(scalingGroupDir, "terraform.tfvars")
 
-		// // Scaling Rule
+		// Scaling Rule
 		scalingRules, err := aliClient.ESS.GetScalingRules(sg.ScalingGroupID, sg.ScalingGroupName)
 		if err != nil {
 			return 1, err
@@ -55,7 +103,7 @@ func aliyunESSObj(appFlags *Flags, cfg Config) (int, error) {
 			srGenerator.Generate(scalingRuleDir, "terraform.tfvars")
 		}
 
-		// // Alarm / Event-trigger task
+		// Alarm or Event-trigger task
 		alarms, err := aliClient.ESS.GetAlarms(sg.ScalingGroupID, sg.ScalingGroupName)
 		if err != nil {
 			return 1, nil
@@ -79,7 +127,7 @@ func aliyunESSObj(appFlags *Flags, cfg Config) (int, error) {
 			lhGenerator.Generate(lifecycleHookDir, "terraform.tfvars")
 		}
 
-		// // Scaling Configuration
+		// Scaling Configuration
 		scalingConfigurations, err := aliClient.ESS.GetScalingConfigurations(sg.ScalingGroupID, sg.ScalingGroupName)
 		if err != nil {
 			return 1, nil
@@ -95,13 +143,8 @@ func aliyunESSObj(appFlags *Flags, cfg Config) (int, error) {
 
 			scalingConfigurationDir := path.Join(scalingConfigurationParentDir, sc.ScalingGroupName)
 			scGenerator := tfvars.New(tfvarsaliyun.NewScalingConfiguration(sc))
-			err = scGenerator.Generate(scalingConfigurationDir, "terraform.tfvars")
-			if err != nil {
-				fmt.Println("Scaling Configuration:", err)
-			}
+			scGenerator.Generate(scalingConfigurationDir, "terraform.tfvars")
 		}
-
-		break
 	}
 
 	return 0, nil

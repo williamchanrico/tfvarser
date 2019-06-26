@@ -82,17 +82,15 @@ esssc_user_data = <<EOF
 {{ .UserData }}
 EOF
 
-esssc_tags_tribe     = ""
-esssc_tags_team      = ""
-esssc_tags_hostgroup = "{{ index .Tags "hostgroup" }}"
-esssc_tags_type      = ""
-
+esssc_tags_tribe     = "{{ if .Tags.tribe }}{{ index .Tags "tribe" }}{{ end }}"
+esssc_tags_team      = "{{ if .Tags.team }}{{ index .Tags "team" }}{{ end }}"
+esssc_tags_hostgroup = "{{ if .Tags.hostgroup }}{{ index .Tags "hostgroup" }}{{ end }}"
+esssc_tags_type      = "{{ if .Tags.type }}{{ index .Tags "type" }}{{ end }}"
 {{ if .Tags.consul_tags }}
 esssc_optional_tags = {
   "consul_tags" = "{{ index .Tags "consul_tags" }}"
 }
-{{ end }}
-`
+{{ end }}`
 
 	return tmpl
 }
