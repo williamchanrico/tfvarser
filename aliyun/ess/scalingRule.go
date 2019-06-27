@@ -1,6 +1,8 @@
 package ess
 
 import (
+	"errors"
+
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	esssdk "github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 )
@@ -49,4 +51,22 @@ func (c *Client) GetScalingRules(scalingGroupID, scalingGroupName string) ([]Sca
 	}
 
 	return scalingRules, nil
+}
+
+// GetScalingRuleNameByAri returns the scaling rule name matched by it's ari
+func (c *Client) GetScalingRuleNameByAri(ari string) (string, error) {
+	req := esssdk.CreateDescribeScalingRulesRequest()
+	req.PageSize = requests.NewInteger(50)
+	req.ScalingRuleAri1 = ari
+
+	resp, err := c.ess.DescribeScalingRules(req)
+	if err != nil {
+		return "", err
+	}
+
+	if len(resp.ScalingRules.ScalingRule) < 1 {
+		return "", errors.New("Scaling rule not found")
+	}
+
+	return resp.ScalingRules.ScalingRule[0].ScalingRuleName, nil
 }

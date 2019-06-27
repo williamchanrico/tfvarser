@@ -11,6 +11,7 @@ type Alarm struct {
 	AlarmID            string
 	ScalingGroupID     string
 	ScalingGroupName   string
+	ScalingRuleName    string
 	MetricType         string
 	MetricName         string
 	Period             int
@@ -48,6 +49,9 @@ func (c *Client) GetAlarms(scalingGroupID, scalingGroupName string) ([]Alarm, er
 			alarm.ComparisonOperator = al.ComparisonOperator
 			alarm.Threshold = al.Threshold
 			alarm.EvaluationCount = al.EvaluationCount
+
+			// We need scaling rule name for remote state
+			alarm.ScalingRuleName, _ = c.GetScalingRuleNameByAri(al.AlarmActions.AlarmAction[0])
 
 			alarms = append(alarms, alarm)
 		}

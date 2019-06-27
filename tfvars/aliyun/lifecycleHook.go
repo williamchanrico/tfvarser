@@ -55,7 +55,7 @@ func (s *LifecycleHook) Template() string {
   }
 }
 
-# ESS scaling group (ID: {{ .ScalingGroupID }})
+# ESS scaling group
 esssg_remote_state_bucket = "tkpd-tg-alicloud"
 esssg_remote_state_key    = "{{ .ScalingGroupName }}/autoscale/ess-scaling-group/terraform.tfstate"
 

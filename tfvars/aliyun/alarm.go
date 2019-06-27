@@ -61,7 +61,7 @@ esssg_remote_state_key    = "{{ .ScalingGroupName }}/autoscale/ess-scaling-group
 
 # ESS scaling rule
 esssr_remote_state_bucket = "tkpd-tg-alicloud"
-esssr_remote_state_key    = "{{ .ScalingGroupName }}/autoscale/ess-scaling-rules/auto-downscale/terraform.tfstate"
+esssr_remote_state_key    = "{{ .ScalingGroupName }}/autoscale/ess-scaling-rules/{{ .ScalingRuleName }}/terraform.tfstate"
 
 # ESS alarm
 essa_name                = "{{ .AlarmName }}"

@@ -90,7 +90,8 @@ esssc_tags_type      = "{{ if .Tags.type }}{{ index .Tags "type" }}{{ end }}"
 esssc_optional_tags = {
   "consul_tags" = "{{ index .Tags "consul_tags" }}"
 }
-{{ end }}# Import command
+{{ end }}
+# Import command
 # terragrunt import alicloud_ess_scaling_configuration.esssc {{ .ScalingConfigurationID }}
 `
 
