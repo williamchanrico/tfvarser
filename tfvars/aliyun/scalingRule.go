@@ -59,11 +59,14 @@ func (s *ScalingRule) Template() string {
 esssg_remote_state_bucket = "tkpd-tg-alicloud"
 esssg_remote_state_key    = "{{ .ScalingGroupName }}/autoscale/ess-scaling-group/terraform.tfstate"
 
-# ESS scaling rule (ID: {{ .ScalingRuleID }})
+# ESS scaling rule
 esssr_scaling_rule_name = "{{ .ScalingRuleName }}"
 esssr_adjustment_type   = "{{ .AdjustmentType }}"
 esssr_adjustment_value  = "{{ .AdjustmentValue }}"
 esssr_cooldown          = {{ .Cooldown }}
+
+# Import command
+# terragrunt import alicloud_ess_scaling_rule.esssr {{ .ScalingRuleID }}
 `
 
 	return tmpl

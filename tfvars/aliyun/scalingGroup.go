@@ -76,6 +76,9 @@ esssg_vsw_ids          = [
 
 # The order of VSwitches selected when creating new VMs
 esssg_multi_az_policy  = "{{ .MultiAZPolicy }}"
+
+# Import command
+# terragrunt import alicloud_ess_scaling_group.esssg {{ .ScalingGroupID }}
 `
 
 	return tmpl

@@ -73,6 +73,7 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 		}
 		fmt.Printf("Generating tfvars for scaling group: %v\n", sg.ScalingGroupName)
 
+		// We want to separate every scaling group by service name
 		serviceName := parseServiceNameFromScalingGroup(sg.ScalingGroupName)
 		serviceDir := path.Join(".", serviceName, "autoscale")
 
@@ -88,6 +89,9 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 		}
 		scalingRuleParentDir := path.Join(serviceDir, "ess-scaling-rules")
 		for _, sr := range scalingRules {
+			// Hacks: remote state uses service name instead of scaling group name
+			sr.ScalingGroupName = serviceName
+
 			scalingRuleDir := path.Join(scalingRuleParentDir, sr.ScalingRuleName)
 			srGenerator := tfvars.New(tfvarsaliyun.NewScalingRule(sr))
 			srGenerator.Generate(scalingRuleDir, "terraform.tfvars")
@@ -100,6 +104,9 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 		}
 		alarmParentDir := path.Join(serviceDir, "ess-alarms")
 		for _, al := range alarms {
+			// Hacks: remote state uses service name instead of scaling group name
+			al.ScalingGroupName = serviceName
+
 			alarmDir := path.Join(alarmParentDir, al.AlarmName)
 			alGenerator := tfvars.New(tfvarsaliyun.NewAlarm(al))
 			alGenerator.Generate(alarmDir, "terraform.tfvars")
@@ -112,6 +119,9 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 		}
 		lifecycleHookParentDir := path.Join(serviceDir, "ess-lifecycle-hooks")
 		for _, lh := range lifecycleHooks {
+			// Hacks: remote state uses service name instead of scaling group name
+			lh.ScalingGroupName = serviceName
+
 			lifecycleHookDir := path.Join(lifecycleHookParentDir, lh.LifecycleHookName)
 			lhGenerator := tfvars.New(tfvarsaliyun.NewLifecycleHook(lh))
 			lhGenerator.Generate(lifecycleHookDir, "terraform.tfvars")
@@ -130,6 +140,9 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 			if err == nil {
 				sc.ImageName = imageName
 			}
+
+			// Hacks: remote state uses service name instead of scaling group name
+			sc.ScalingGroupName = serviceName
 
 			scalingConfigurationDir := path.Join(scalingConfigurationParentDir, sc.ScalingGroupName)
 			scGenerator := tfvars.New(tfvarsaliyun.NewScalingConfiguration(sc))

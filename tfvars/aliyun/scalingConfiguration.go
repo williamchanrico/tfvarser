@@ -66,7 +66,7 @@ sg_remote_state_key    = "security-groups/intranet/security-group/terraform.tfst
 # ECS Images
 images_name_regex = "{{ .ImageName }}"
 
-# ESS scaling configuration (ID: {{ .ScalingConfigurationID }})
+# ESS scaling configuration
 esssc_scaling_configuration_name = "{{ .ScalingGroupName }}"
 esssc_instance_name              = "{{ .ScalingGroupName }}"
 esssc_instance_types             = [
@@ -90,7 +90,9 @@ esssc_tags_type      = "{{ if .Tags.type }}{{ index .Tags "type" }}{{ end }}"
 esssc_optional_tags = {
   "consul_tags" = "{{ index .Tags "consul_tags" }}"
 }
-{{ end }}`
+{{ end }}# Import command
+# terragrunt import alicloud_ess_scaling_configuration.esssc {{ .ScalingConfigurationID }}
+`
 
 	return tmpl
 }

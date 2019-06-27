@@ -63,7 +63,7 @@ esssg_remote_state_key    = "{{ .ScalingGroupName }}/autoscale/ess-scaling-group
 esssr_remote_state_bucket = "tkpd-tg-alicloud"
 esssr_remote_state_key    = "{{ .ScalingGroupName }}/autoscale/ess-scaling-rules/auto-downscale/terraform.tfstate"
 
-# ESS alarm (ID: {{ .AlarmID }})
+# ESS alarm
 essa_name                = "{{ .AlarmName }}"
 essa_metric_type         = "{{ .MetricType }}"
 essa_metric_name         = "{{ .MetricName }}"
@@ -72,6 +72,9 @@ essa_statistics          = "{{ .Statistics }}"
 essa_comparison_operator = "{{ .ComparisonOperator }}"
 essa_threshold           = {{ .Threshold }}
 essa_evaluation_count    = {{ .EvaluationCount }}
+
+# Import command
+# terragrunt import alicloud_ess_alarm.essa {{ .AlarmID }}
 `
 
 	return tmpl
