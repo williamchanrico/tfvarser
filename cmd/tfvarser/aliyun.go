@@ -92,7 +92,14 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 			// Hacks: remote state uses service name instead of scaling group name
 			sr.ScalingGroupName = serviceName
 
+			// Hacks: use auto-{downscale/upscale} instead of the scaling rule name
+			if strings.Contains(sr.ScalingRuleName, "downscale") {
+				sr.ScalingRuleName = "auto-downscale"
+			} else if strings.Contains(sr.ScalingRuleName, "upscale") {
+				sr.ScalingRuleName = "auto-upscale"
+			}
 			scalingRuleDir := path.Join(scalingRuleParentDir, sr.ScalingRuleName)
+
 			srGenerator := tfvars.New(tfvarsaliyun.NewScalingRule(sr))
 			srGenerator.Generate(scalingRuleDir, "terraform.tfvars")
 		}
@@ -122,6 +129,12 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 			// Hacks: remote state uses service name instead of scaling group name
 			lh.ScalingGroupName = serviceName
 
+			// Hacks: use predefined name for LH, autoscale{up/down}-event-mns-queue
+			if lh.LifecycleTransition == "SCALE_IN" {
+				lh.LifecycleHookName = "autoscaledown-event-mns-queue"
+			} else if lh.LifecycleTransition == "SCALE_OUT" {
+				lh.LifecycleHookName = "autoscaleup-event-mns-queue"
+			}
 			lifecycleHookDir := path.Join(lifecycleHookParentDir, lh.LifecycleHookName)
 			lhGenerator := tfvars.New(tfvarsaliyun.NewLifecycleHook(lh))
 			lhGenerator.Generate(lifecycleHookDir, "terraform.tfvars")

@@ -61,10 +61,10 @@ esssg_remote_state_key    = "{{ .ScalingGroupName }}/autoscale/ess-scaling-group
 
 # MNS queue
 mq_remote_state_bucket = "tkpd-tg-alicloud"
-mq_remote_state_key    = "general/mns-queues/autoscaledown-event/terraform.tfstate"
+mq_remote_state_key    = "general/mns-queues/{{ if eq .LifecycleTransition "SCALE_IN" }}autoscaledown-event{{ else }}autoscaleup-event{{ end }}/terraform.tfstate"
 
 # ESS lifecycle hook
-esslh_name                 = "{{ if eq .LifecycleTransition "SCALE_IN" }}autoscaledown{{ else }}autoscaleup{{ end }}-event-mns-queue"
+esslh_name                 = "{{ .LifecycleHookName }}"
 esslh_lifecycle_transition = "{{ .LifecycleTransition }}"
 esslh_default_result       = "{{ .DefaultResult }}"
 esslh_heartbeat_timeout    = {{ .HeartbeatTimeout }}

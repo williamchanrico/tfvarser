@@ -1,6 +1,8 @@
 package ess
 
 import (
+	"strings"
+
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	esssdk "github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 )
@@ -51,7 +53,13 @@ func (c *Client) GetAlarms(scalingGroupID, scalingGroupName string) ([]Alarm, er
 			alarm.EvaluationCount = al.EvaluationCount
 
 			// We need scaling rule name for remote state
+			// Hacks: scaling rule name is modified to auto-{downscale/upscale}
 			alarm.ScalingRuleName, _ = c.GetScalingRuleNameByAri(al.AlarmActions.AlarmAction[0])
+			if strings.Contains(alarm.ScalingRuleName, "-upscale") {
+				alarm.ScalingRuleName = "auto-upscale"
+			} else if strings.Contains(alarm.ScalingRuleName, "-downscale") {
+				alarm.ScalingRuleName = "auto-downscale"
+			}
 
 			alarms = append(alarms, alarm)
 		}
