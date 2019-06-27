@@ -55,7 +55,7 @@ func (s *LifecycleHook) Template() string {
   }
 }
 
-# ESS scaling group
+# ESS scaling group (ID: {{ .ScalingGroupID }})
 esssg_remote_state_bucket = "tkpd-tg-alicloud"
 esssg_remote_state_key    = "{{ .ScalingGroupName }}/autoscale/ess-scaling-group/terraform.tfstate"
 
@@ -63,7 +63,7 @@ esssg_remote_state_key    = "{{ .ScalingGroupName }}/autoscale/ess-scaling-group
 mq_remote_state_bucket = "tkpd-tg-alicloud"
 mq_remote_state_key    = "general/mns-queues/autoscaledown-event/terraform.tfstate"
 
-# ESS lifecycle hook
+# ESS lifecycle hook (ID: {{ .LifecycleHookID }})
 esslh_name                 = "{{ if eq .LifecycleTransition "SCALE_IN" }}autoscaledown{{ else }}autoscaleup{{ end }}-event-mns-queue"
 esslh_lifecycle_transition = "{{ .LifecycleTransition }}"
 esslh_default_result       = "{{ .DefaultResult }}"

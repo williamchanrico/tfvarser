@@ -8,6 +8,7 @@ import (
 // ScalingRule struct to map to the tfvars template
 type ScalingRule struct {
 	ScalingRuleName  string
+	ScalingRuleID    string
 	ScalingGroupID   string
 	ScalingGroupName string
 	AdjustmentType   string
@@ -33,6 +34,7 @@ func (c *Client) GetScalingRules(scalingGroupID, scalingGroupName string) ([]Sca
 		for _, sr := range resp.ScalingRules.ScalingRule {
 			scalingRule := ScalingRule{}
 			scalingRule.ScalingRuleName = sr.ScalingRuleName
+			scalingRule.ScalingRuleID = sr.ScalingRuleId
 			scalingRule.ScalingGroupID = sr.ScalingGroupId
 			scalingRule.ScalingGroupName = scalingGroupName // Needed for template
 			scalingRule.AdjustmentType = sr.AdjustmentType

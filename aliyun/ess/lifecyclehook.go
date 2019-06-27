@@ -8,6 +8,7 @@ import (
 // LifecycleHook struct is mapped to lifecycle hook template
 type LifecycleHook struct {
 	LifecycleHookName   string
+	LifecycleHookID     string
 	ScalingGroupName    string
 	LifecycleTransition string
 	DefaultResult       string
@@ -32,6 +33,7 @@ func (c *Client) GetLifecycleHooks(scalingGroupID, scalingGroupName string) ([]L
 		for _, lh := range resp.LifecycleHooks.LifecycleHook {
 			lifecycleHook := LifecycleHook{}
 			lifecycleHook.LifecycleHookName = lh.LifecycleHookName
+			lifecycleHook.LifecycleHookID = lh.LifecycleHookId
 			lifecycleHook.ScalingGroupName = scalingGroupName // Needed for template
 			lifecycleHook.LifecycleTransition = lh.LifecycleTransition
 			lifecycleHook.HeartbeatTimeout = lh.HeartbeatTimeout

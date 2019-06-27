@@ -73,7 +73,8 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 		}
 		fmt.Printf("Generating tfvars for scaling group: %v\n", sg.ScalingGroupName)
 
-		serviceDir := path.Join(".", sg.ScalingGroupName, "autoscale")
+		serviceName := parseServiceNameFromScalingGroup(sg.ScalingGroupName)
+		serviceDir := path.Join(".", serviceName, "autoscale")
 
 		// Scaling Group
 		scalingGroupDir := path.Join(serviceDir, "ess-scaling-group")
@@ -146,4 +147,13 @@ func contains(slice []string, str string) bool {
 		}
 	}
 	return false
+}
+
+// parseServiceNameFromScalingGroup to get service name without any scaling group specific tags
+// this is purely optional out of current setup
+func parseServiceNameFromScalingGroup(scalingGroupName string) string {
+	ret := strings.TrimPrefix(scalingGroupName, "tf-go-")
+	ret = strings.TrimPrefix(ret, "go-")
+	ret = strings.TrimPrefix(ret, "node-")
+	return ret
 }

@@ -55,7 +55,7 @@ func (s *Alarm) Template() string {
   }
 }
 
-# ESS scaling group
+# ESS scaling group (ID: {{ .ScalingGroupID }})
 esssg_remote_state_bucket = "tkpd-tg-alicloud"
 esssg_remote_state_key    = "{{ .ScalingGroupName }}/autoscale/ess-scaling-group/terraform.tfstate"
 
@@ -63,7 +63,7 @@ esssg_remote_state_key    = "{{ .ScalingGroupName }}/autoscale/ess-scaling-group
 esssr_remote_state_bucket = "tkpd-tg-alicloud"
 esssr_remote_state_key    = "{{ .ScalingGroupName }}/autoscale/ess-scaling-rules/auto-downscale/terraform.tfstate"
 
-# ESS alarm
+# ESS alarm (ID: {{ .AlarmID }})
 essa_name                = "{{ .AlarmName }}"
 essa_metric_type         = "{{ .MetricType }}"
 essa_metric_name         = "{{ .MetricName }}"

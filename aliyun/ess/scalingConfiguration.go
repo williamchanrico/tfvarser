@@ -11,6 +11,7 @@ import (
 // ScalingConfiguration struct to map to the tfvars template
 type ScalingConfiguration struct {
 	ScalingConfigurationName string
+	ScalingConfigurationID   string
 	ScalingGroupID           string
 	ScalingGroupName         string
 	ImageID                  string
@@ -44,6 +45,7 @@ func (c *Client) GetScalingConfigurations(scalingGroupID, scalingGroupName strin
 		for _, sc := range resp.ScalingConfigurations.ScalingConfiguration {
 			scalingConfiguration := ScalingConfiguration{}
 			scalingConfiguration.ScalingConfigurationName = sc.ScalingConfigurationName
+			scalingConfiguration.ScalingConfigurationID = sc.ScalingConfigurationId
 			scalingConfiguration.ScalingGroupID = sc.ScalingGroupId
 			scalingConfiguration.ScalingGroupName = scalingGroupName // Needed for template
 			scalingConfiguration.ImageID = sc.ImageId

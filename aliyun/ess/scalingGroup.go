@@ -2,8 +2,10 @@ package ess
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	esssdk "github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
@@ -22,7 +24,7 @@ type ScalingGroup struct {
 
 // GetScalingGroups will query list of scaling groups
 func (c *Client) GetScalingGroups(ctx context.Context) ([]ScalingGroup, error) {
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	responseChan := make(chan *esssdk.DescribeScalingGroupsResponse, 1)
@@ -33,6 +35,9 @@ func (c *Client) GetScalingGroups(ctx context.Context) ([]ScalingGroup, error) {
 	// Get first page to calculate total number of pages to iterate
 	c.getScalingGroupsByPage(ctx, responseChan, 1, pageSize)
 	totalPageCount := ((<-responseChan).TotalCount / pageSize) + 1
+	if totalPageCount <= 0 {
+		return nil, errors.New("Failed to retrieve scaling groups, please try again")
+	}
 
 	var wg sync.WaitGroup
 	for pageNumber := totalPageCount; pageNumber > 0; pageNumber-- {

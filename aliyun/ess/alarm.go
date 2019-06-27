@@ -8,6 +8,7 @@ import (
 // Alarm struct to map to the tfvars template
 type Alarm struct {
 	AlarmName          string
+	AlarmID            string
 	ScalingGroupID     string
 	ScalingGroupName   string
 	MetricType         string
@@ -37,6 +38,7 @@ func (c *Client) GetAlarms(scalingGroupID, scalingGroupName string) ([]Alarm, er
 		for _, al := range resp.AlarmList.Alarm {
 			alarm := Alarm{}
 			alarm.AlarmName = al.Name
+			alarm.AlarmID = al.AlarmTaskId
 			alarm.ScalingGroupID = al.ScalingGroupId
 			alarm.ScalingGroupName = scalingGroupName // Needed for template
 			alarm.MetricType = al.MetricType

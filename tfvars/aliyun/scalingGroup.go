@@ -55,7 +55,7 @@ func (s *ScalingGroup) Template() string {
   }
 }
 
-# Name of the scaling group
+# Name of the scaling group (ID: {{ .ScalingGroupID }})
 esssg_name = "{{ .ScalingGroupName }}"
 
 # Minimum and maximum number of VMs in the scaling group
