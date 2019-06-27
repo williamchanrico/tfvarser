@@ -7,6 +7,9 @@
 
 A quick hack to reduce toils in importing hundreds of scaling groups by hand
 
+*Disclaimer*: the templates are curated to specific needs and not really for general use, at least for now as this is only a quick hack to help current task.
+So keeping the source close by will come in handy every now and then (modifying, rebuilding, etc.)
+
 ### Installation
 
 `$ make go-build` will build the `tfvarser` binary in `./bin/tfvarser`
