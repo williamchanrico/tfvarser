@@ -1,8 +1,6 @@
 package ess
 
 import (
-	"strings"
-
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	esssdk "github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 )
@@ -12,8 +10,7 @@ type Alarm struct {
 	AlarmName          string
 	AlarmID            string
 	ScalingGroupID     string
-	ScalingGroupName   string
-	ScalingRuleName    string
+	AlarmActions       []string
 	MetricType         string
 	MetricName         string
 	Period             int
@@ -24,8 +21,7 @@ type Alarm struct {
 }
 
 // GetAlarms returns list of scaling rule for the given scaling group
-// scalingGroupName is only used to fill the struct, not for the request
-func (c *Client) GetAlarms(scalingGroupID, scalingGroupName string) ([]Alarm, error) {
+func (c *Client) GetAlarms(scalingGroupID string) ([]Alarm, error) {
 	req := esssdk.CreateDescribeAlarmsRequest()
 	req.PageSize = requests.NewInteger(50)
 	req.ScalingGroupId = scalingGroupID
@@ -33,7 +29,7 @@ func (c *Client) GetAlarms(scalingGroupID, scalingGroupName string) ([]Alarm, er
 	var alarms []Alarm
 
 	for totalCount := req.PageSize; totalCount == req.PageSize; {
-		resp, err := c.ess.DescribeAlarms(req)
+		resp, err := c.DescribeAlarms(req)
 		if err != nil {
 			return nil, err
 		}
@@ -43,7 +39,6 @@ func (c *Client) GetAlarms(scalingGroupID, scalingGroupName string) ([]Alarm, er
 			alarm.AlarmName = al.Name
 			alarm.AlarmID = al.AlarmTaskId
 			alarm.ScalingGroupID = al.ScalingGroupId
-			alarm.ScalingGroupName = scalingGroupName // Needed for template
 			alarm.MetricType = al.MetricType
 			alarm.MetricName = al.MetricName
 			alarm.Period = al.Period
@@ -51,15 +46,7 @@ func (c *Client) GetAlarms(scalingGroupID, scalingGroupName string) ([]Alarm, er
 			alarm.ComparisonOperator = al.ComparisonOperator
 			alarm.Threshold = al.Threshold
 			alarm.EvaluationCount = al.EvaluationCount
-
-			// We need scaling rule name for remote state
-			// Hacks: scaling rule name is modified to auto-{downscale/upscale}
-			alarm.ScalingRuleName, _ = c.GetScalingRuleNameByAri(al.AlarmActions.AlarmAction[0])
-			if strings.Contains(alarm.ScalingRuleName, "-upscale") {
-				alarm.ScalingRuleName = "auto-upscale"
-			} else if strings.Contains(alarm.ScalingRuleName, "-downscale") {
-				alarm.ScalingRuleName = "auto-downscale"
-			}
+			alarm.AlarmActions = al.AlarmActions.AlarmAction
 
 			alarms = append(alarms, alarm)
 		}

@@ -15,19 +15,23 @@ const (
 
 // ScalingRule generator struct
 type ScalingRule struct {
-	svc ess.ScalingRule
+	ess.ScalingRule
+	ScalingGroup ess.ScalingGroup
+	ServiceName  string
 }
 
 // NewScalingRule return a generator for the scaling rule
-func NewScalingRule(sr ess.ScalingRule) *ScalingRule {
+func NewScalingRule(sr ess.ScalingRule, sg ess.ScalingGroup, serviceName string) *ScalingRule {
 	return &ScalingRule{
-		svc: sr,
+		ScalingRule:  sr,
+		ScalingGroup: sg,
+		ServiceName:  serviceName,
 	}
 }
 
 // Name returns the name of this tfvars generator
 func (s *ScalingRule) Name() string {
-	return fmt.Sprintf("%s-%s", s.Kind(), s.svc.ScalingRuleName)
+	return fmt.Sprintf("%s-%s", s.Kind(), s.ScalingRuleName)
 }
 
 // Kind returns the key reference to this provider and object
@@ -37,11 +41,7 @@ func (s *ScalingRule) Kind() string {
 
 // Execute a scaling rule raw string
 func (s *ScalingRule) Execute(w io.Writer, tmpl *template.Template) error {
-	if err := tmpl.Execute(w, s.svc); err != nil {
-		return err
-	}
-
-	return nil
+	return tmpl.Execute(w, s)
 }
 
 // Template returns the template
@@ -55,9 +55,9 @@ func (s *ScalingRule) Template() string {
   }
 }
 
-# ESS scaling group (ID: {{ .ScalingGroupID }})
+# ESS scaling group (ID: {{ .ScalingGroup.ScalingGroupID }})
 esssg_remote_state_bucket = "tkpd-tg-alicloud"
-esssg_remote_state_key    = "{{ .ScalingGroupName }}/autoscale/ess-scaling-group/terraform.tfstate"
+esssg_remote_state_key    = "{{ .ServiceName }}/autoscale/ess-scaling-group/terraform.tfstate"
 
 # ESS scaling rule
 esssr_scaling_rule_name = "{{ .ScalingRuleName }}"

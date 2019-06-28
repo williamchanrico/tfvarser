@@ -1,9 +1,5 @@
 package tfvarser
 
-import (
-	"errors"
-)
-
 // Flags contains run-time flags
 type Flags struct {
 	Provider    string
@@ -25,6 +21,6 @@ func Run(appFlags *Flags, cfg Config) (int, error) {
 	case "ali":
 		return aliyunProvider(appFlags, cfg)
 	default:
-		return 1, errors.New("Provider is not supported")
+		return 1, ErrProviderNotSupported
 	}
 }
