@@ -42,11 +42,7 @@ func (s *ScalingGroup) Kind() string {
 
 // Execute a scaling group raw string
 func (s *ScalingGroup) Execute(w io.Writer, tmpl *template.Template) error {
-	if err := tmpl.Execute(w, s); err != nil {
-		return err
-	}
-
-	return nil
+	return tmpl.Execute(w, s)
 }
 
 // Template returns the template

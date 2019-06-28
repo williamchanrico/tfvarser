@@ -43,11 +43,7 @@ func (s *ScalingConfiguration) Kind() string {
 
 // Execute a scaling configuration raw string
 func (s *ScalingConfiguration) Execute(w io.Writer, tmpl *template.Template) error {
-	if err := tmpl.Execute(w, s); err != nil {
-		return err
-	}
-
-	return nil
+	return tmpl.Execute(w, s)
 }
 
 // Template returns the template

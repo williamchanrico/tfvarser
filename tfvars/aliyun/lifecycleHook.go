@@ -41,11 +41,7 @@ func (s *LifecycleHook) Kind() string {
 
 // Execute a lifecycle hook raw string
 func (s *LifecycleHook) Execute(w io.Writer, tmpl *template.Template) error {
-	if err := tmpl.Execute(w, s); err != nil {
-		return err
-	}
-
-	return nil
+	return tmpl.Execute(w, s)
 }
 
 // Template returns the template
