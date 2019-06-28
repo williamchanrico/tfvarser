@@ -71,7 +71,7 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 		return 1, err
 	}
 
-	// We want to act on limit flags, so start process them here
+	// We want to act on limit flags, so start processing them here
 	// limitNames: will filter on ScalingGroupName
 	// limitIDs: will filter on ScalingGroupID
 	limitNames := strings.Split(appFlags.LimitNames, ",")
