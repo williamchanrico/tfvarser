@@ -18,7 +18,6 @@ type ScalingRule struct {
 }
 
 // GetScalingRules returns list of scaling rule for the given scaling group
-// scalingGroupName is only used to fill the struct, not for the request
 func (c *Client) GetScalingRules(scalingGroupID string) ([]ScalingRule, error) {
 	req := esssdk.CreateDescribeScalingRulesRequest()
 	req.PageSize = requests.NewInteger(50)

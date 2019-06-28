@@ -6,8 +6,9 @@ import (
 	"log"
 	"path"
 	"strings"
+	"time"
 
-	. "github.com/logrusorgru/aurora"
+	col "github.com/logrusorgru/aurora"
 
 	"github.com/williamchanrico/tfvarser/aliyun"
 	"github.com/williamchanrico/tfvarser/aliyun/ess"
@@ -62,7 +63,10 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 		return 1, err
 	}
 
-	scalingGroups, err := aliClient.ESS.GetScalingGroups(context.Background())
+	fmt.Printf("Querying %v from cloud provider\n", col.Cyan("Scaling Group(s)"))
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	scalingGroups, err := aliClient.ESS.GetScalingGroupsWithAsync(ctx)
 	if err != nil {
 		return 1, err
 	}
@@ -78,7 +82,7 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 		if !(contains(limitNames, sg.ScalingGroupName) || contains(limitIDs, sg.ScalingGroupID)) {
 			continue
 		}
-		fmt.Printf("Generating tfvars for scaling group: %v\n", Green(sg.ScalingGroupName))
+		fmt.Printf("Generating tfvars for scaling group: %v\n", col.Green(sg.ScalingGroupName))
 
 		// We want to separate every scaling group by service name
 		// we will inject this service name to generators that need this service name

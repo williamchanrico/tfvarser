@@ -21,7 +21,6 @@ type Alarm struct {
 }
 
 // GetAlarms returns list of scaling rule for the given scaling group
-// scalingGroupName is only used to fill the struct, not for the request
 func (c *Client) GetAlarms(scalingGroupID string) ([]Alarm, error) {
 	req := esssdk.CreateDescribeAlarmsRequest()
 	req.PageSize = requests.NewInteger(50)

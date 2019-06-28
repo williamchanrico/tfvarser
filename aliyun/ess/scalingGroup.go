@@ -2,9 +2,7 @@ package ess
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
@@ -22,32 +20,36 @@ type ScalingGroup struct {
 	MultiAZPolicy    string
 }
 
-// GetScalingGroups will query list of scaling groups
-func (c *Client) GetScalingGroups(ctx context.Context) ([]ScalingGroup, error) {
+// GetScalingGroupsWithAsync will query list of scaling groups
+func (c *Client) GetScalingGroupsWithAsync(ctx context.Context) ([]ScalingGroup, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	responseChan := make(chan *esssdk.DescribeScalingGroupsResponse, 1)
-	defer close(responseChan)
-
 	var pageSize = 50
+	var errCh = make(chan error, 1)
 
 	// Get first page to calculate total number of pages to iterate
-	c.getScalingGroupsByPage(ctx, responseChan, 1, pageSize)
-	totalPageCount := ((<-responseChan).TotalCount / pageSize) + 1
-	if totalPageCount <= 0 {
-		return nil, errors.New("Failed to retrieve scaling groups, please try again")
+	firstPageCh := make(chan *esssdk.DescribeScalingGroupsResponse, 1)
+	c.getScalingGroupsByPage(ctx, firstPageCh, errCh, 1, pageSize)
+	select {
+	case err := <-errCh:
+		return nil, err
+	default:
+	}
+	totalPageCount := ((<-firstPageCh).TotalCount / pageSize) + 1
+	close(firstPageCh)
+
+	// Scatter
+	respCh := make(chan *esssdk.DescribeScalingGroupsResponse, totalPageCount)
+	for pageNumber := 1; pageNumber <= totalPageCount; pageNumber++ {
+		go c.getScalingGroupsByPage(ctx, respCh, errCh, pageNumber, pageSize)
 	}
 
-	var wg sync.WaitGroup
-	for pageNumber := totalPageCount; pageNumber > 0; pageNumber-- {
-		wg.Add(1)
-		go c.getScalingGroupsByPage(ctx, responseChan, pageNumber, pageSize)
-	}
-
+	// Gatter
 	scalingGroups := []ScalingGroup{}
-	go func() {
-		for resp := range responseChan {
+	for a := 0; a < totalPageCount; a++ {
+		select {
+		case resp := <-respCh:
 			for _, sg := range resp.ScalingGroups.ScalingGroup {
 				scalingGroup := ScalingGroup{}
 				scalingGroup.ScalingGroupName = sg.ScalingGroupName
@@ -61,16 +63,19 @@ func (c *Client) GetScalingGroups(ctx context.Context) ([]ScalingGroup, error) {
 			}
 
 			fmt.Printf("Retrived scaling groups, page number: %v\n", resp.PageNumber)
-			wg.Done()
-		}
-	}()
 
-	wg.Wait()
+		case err := <-errCh:
+			return nil, err
+
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+	}
 
 	return scalingGroups, nil
 }
 
-func (c *Client) getScalingGroupsByPage(ctx context.Context, responseChan chan *esssdk.DescribeScalingGroupsResponse, pageNumber int, pageSize int) {
+func (c *Client) getScalingGroupsByPage(ctx context.Context, responseChan chan *esssdk.DescribeScalingGroupsResponse, errorChan chan error, pageNumber int, pageSize int) {
 	request := esssdk.CreateDescribeScalingGroupsRequest()
 	request.PageNumber = requests.NewInteger(pageNumber)
 	request.PageSize = requests.NewInteger(pageSize)
@@ -81,11 +86,11 @@ func (c *Client) getScalingGroupsByPage(ctx context.Context, responseChan chan *
 	case resp := <-respChan:
 		responseChan <- resp
 
-	case _ = <-errChan:
-		return
+	case err := <-errChan:
+		errorChan <- err
 
 	case <-ctx.Done():
-		return
+		errorChan <- ctx.Err()
 	}
 }
 
