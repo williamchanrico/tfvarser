@@ -75,7 +75,7 @@ func (c *Client) getScalingGroupsByPage(ctx context.Context, responseChan chan *
 	request.PageNumber = requests.NewInteger(pageNumber)
 	request.PageSize = requests.NewInteger(pageSize)
 
-	respChan, errChan := c.ess.DescribeScalingGroupsWithChan(request)
+	respChan, errChan := c.DescribeScalingGroupsWithChan(request)
 
 	select {
 	case resp := <-respChan:
@@ -98,7 +98,7 @@ func (c *Client) GetScalingGroupInstances(scalingGroupID string) ([]esssdk.Scali
 	var scalingInstanceList []esssdk.ScalingInstance
 
 	for totalCount := req.PageSize; totalCount == req.PageSize; {
-		resp, err := c.ess.DescribeScalingInstances(req)
+		resp, err := c.DescribeScalingInstances(req)
 		if err != nil {
 			return nil, err
 		}

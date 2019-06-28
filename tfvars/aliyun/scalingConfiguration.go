@@ -15,19 +15,25 @@ const (
 
 // ScalingConfiguration generator struct
 type ScalingConfiguration struct {
-	svc ess.ScalingConfiguration
+	ess.ScalingConfiguration
+	ScalingGroup ess.ScalingGroup
+	ServiceName  string
+	ImageName    string
 }
 
 // NewScalingConfiguration return a generator for the scaling configuration
-func NewScalingConfiguration(sc ess.ScalingConfiguration) *ScalingConfiguration {
+func NewScalingConfiguration(sc ess.ScalingConfiguration, sg ess.ScalingGroup, serviceName, imageName string) *ScalingConfiguration {
 	return &ScalingConfiguration{
-		svc: sc,
+		ScalingConfiguration: sc,
+		ScalingGroup:         sg,
+		ServiceName:          serviceName,
+		ImageName:            imageName,
 	}
 }
 
 // Name returns the name of this tfvars generator
 func (s *ScalingConfiguration) Name() string {
-	return fmt.Sprintf("%s-%s", s.Kind(), s.svc.ScalingConfigurationName)
+	return fmt.Sprintf("%s-%s", s.Kind(), s.ScalingConfigurationName)
 }
 
 // Kind returns the key reference to this provider and object
@@ -37,7 +43,7 @@ func (s *ScalingConfiguration) Kind() string {
 
 // Execute a scaling configuration raw string
 func (s *ScalingConfiguration) Execute(w io.Writer, tmpl *template.Template) error {
-	if err := tmpl.Execute(w, s.svc); err != nil {
+	if err := tmpl.Execute(w, s); err != nil {
 		return err
 	}
 
@@ -55,9 +61,9 @@ func (s *ScalingConfiguration) Template() string {
   }
 }
 
-# ESS scaling group (ID: {{ .ScalingGroupID }})
+# ESS scaling group (ID: {{ .ScalingGroup.ScalingGroupID }})
 esssg_remote_state_bucket = "tkpd-tg-alicloud"
-esssg_remote_state_key    = "{{ .ScalingGroupName }}/autoscale/ess-scaling-group/terraform.tfstate"
+esssg_remote_state_key    = "{{ .ServiceName }}/autoscale/ess-scaling-group/terraform.tfstate"
 
 # Security group
 sg_remote_state_bucket = "tkpd-tg-alicloud-infra"
@@ -67,8 +73,8 @@ sg_remote_state_key    = "security-groups/intranet/security-group/terraform.tfst
 images_name_regex = "{{ .ImageName }}"
 
 # ESS scaling configuration
-esssc_scaling_configuration_name = "{{ .ScalingGroupName }}"
-esssc_instance_name              = "{{ .ScalingGroupName }}"
+esssc_scaling_configuration_name = "{{ .ScalingConfigurationName }}"
+esssc_instance_name              = "{{ .ScalingGroup.ScalingGroupName }}"
 esssc_instance_types             = [
 {{ range $index, $element := .InstanceTypes }}{{- if $index }},
 {{- end }}{{- if not $index }} {{ end }} "{{ $element -}}"{{ end }}

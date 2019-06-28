@@ -15,19 +15,23 @@ const (
 
 // LifecycleHook generator struct
 type LifecycleHook struct {
-	svc ess.LifecycleHook
+	ess.LifecycleHook
+	ScalingGroup ess.ScalingGroup
+	ServiceName  string
 }
 
 // NewLifecycleHook return a generator for the lifecycle hook
-func NewLifecycleHook(lh ess.LifecycleHook) *LifecycleHook {
+func NewLifecycleHook(lh ess.LifecycleHook, sg ess.ScalingGroup, serviceName string) *LifecycleHook {
 	return &LifecycleHook{
-		svc: lh,
+		LifecycleHook: lh,
+		ScalingGroup:  sg,
+		ServiceName:   serviceName,
 	}
 }
 
 // Name returns the name of this tfvars generator
 func (s *LifecycleHook) Name() string {
-	return fmt.Sprintf("%s-%s", s.Kind(), s.svc.LifecycleHookName)
+	return fmt.Sprintf("%s-%s", s.Kind(), s.LifecycleHookName)
 }
 
 // Kind returns the key reference to this provider and object
@@ -37,7 +41,7 @@ func (s *LifecycleHook) Kind() string {
 
 // Execute a lifecycle hook raw string
 func (s *LifecycleHook) Execute(w io.Writer, tmpl *template.Template) error {
-	if err := tmpl.Execute(w, s.svc); err != nil {
+	if err := tmpl.Execute(w, s); err != nil {
 		return err
 	}
 
@@ -55,9 +59,9 @@ func (s *LifecycleHook) Template() string {
   }
 }
 
-# ESS scaling group
+# ESS scaling group (ID: {{ .ScalingGroup.ScalingGroupID }})
 esssg_remote_state_bucket = "tkpd-tg-alicloud"
-esssg_remote_state_key    = "{{ .ScalingGroupName }}/autoscale/ess-scaling-group/terraform.tfstate"
+esssg_remote_state_key    = "{{ .ServiceName }}/autoscale/ess-scaling-group/terraform.tfstate"
 
 # MNS queue
 mq_remote_state_bucket = "tkpd-tg-alicloud"

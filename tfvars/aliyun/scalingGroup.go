@@ -15,19 +15,24 @@ const (
 
 // ScalingGroup generator struct
 type ScalingGroup struct {
-	svc ess.ScalingGroup
+	ess.ScalingGroup
+
+	// ServiceName is literally a service name in the scaling group
+	// We use it to separate every services scaling group directory
+	ServiceName string
 }
 
 // NewScalingGroup return a generator for the scaling group
-func NewScalingGroup(sg ess.ScalingGroup) *ScalingGroup {
+func NewScalingGroup(sg ess.ScalingGroup, serviceName string) *ScalingGroup {
 	return &ScalingGroup{
-		svc: sg,
+		ScalingGroup: sg,
+		ServiceName:  serviceName,
 	}
 }
 
 // Name returns the name of this tfvars generator
 func (s *ScalingGroup) Name() string {
-	return fmt.Sprintf("%s-%s", s.Kind(), s.svc.ScalingGroupName)
+	return fmt.Sprintf("%s-%s", s.Kind(), s.ScalingGroupName)
 }
 
 // Kind returns the key reference to this provider and object
@@ -37,7 +42,7 @@ func (s *ScalingGroup) Kind() string {
 
 // Execute a scaling group raw string
 func (s *ScalingGroup) Execute(w io.Writer, tmpl *template.Template) error {
-	if err := tmpl.Execute(w, s.svc); err != nil {
+	if err := tmpl.Execute(w, s); err != nil {
 		return err
 	}
 

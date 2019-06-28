@@ -6,12 +6,10 @@ import (
 
 // Client is the ess client
 type Client struct {
-	ecs *ecssdk.Client
+	*ecssdk.Client
 }
 
 // New returns a new ess client
 func New(c *ecssdk.Client) *Client {
-	return &Client{
-		ecs: c,
-	}
+	return &Client{c}
 }

@@ -13,7 +13,6 @@ type ScalingConfiguration struct {
 	ScalingConfigurationName string
 	ScalingConfigurationID   string
 	ScalingGroupID           string
-	ScalingGroupName         string
 	ImageID                  string
 	ImageName                string
 	InstanceName             string
@@ -29,7 +28,7 @@ type ScalingConfiguration struct {
 
 // GetScalingConfigurations returns list of scaling rule for the given scaling group
 // scalingGroupName is only used to fill the struct, not for the request
-func (c *Client) GetScalingConfigurations(scalingGroupID, scalingGroupName string) ([]ScalingConfiguration, error) {
+func (c *Client) GetScalingConfigurations(scalingGroupID string) ([]ScalingConfiguration, error) {
 	req := esssdk.CreateDescribeScalingConfigurationsRequest()
 	req.PageSize = requests.NewInteger(50)
 	req.ScalingGroupId = scalingGroupID
@@ -37,7 +36,7 @@ func (c *Client) GetScalingConfigurations(scalingGroupID, scalingGroupName strin
 	var scalingConfigurations []ScalingConfiguration
 
 	for totalCount := req.PageSize; totalCount == req.PageSize; {
-		resp, err := c.ess.DescribeScalingConfigurations(req)
+		resp, err := c.DescribeScalingConfigurations(req)
 		if err != nil {
 			return nil, err
 		}
@@ -47,9 +46,7 @@ func (c *Client) GetScalingConfigurations(scalingGroupID, scalingGroupName strin
 			scalingConfiguration.ScalingConfigurationName = sc.ScalingConfigurationName
 			scalingConfiguration.ScalingConfigurationID = sc.ScalingConfigurationId
 			scalingConfiguration.ScalingGroupID = sc.ScalingGroupId
-			scalingConfiguration.ScalingGroupName = scalingGroupName // Needed for template
 			scalingConfiguration.ImageID = sc.ImageId
-			// scalingConfiguration.ImageName = getImageNameByID(sc.ImageId)
 			scalingConfiguration.InstanceName = sc.InstanceName
 			scalingConfiguration.InstanceType = sc.InstanceType
 			scalingConfiguration.InstanceTypes = sc.InstanceTypes.InstanceType

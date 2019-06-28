@@ -22,7 +22,7 @@ func (c *Client) GetImageByID(id string) (Image, error) {
 	req.PageSize = requests.NewInteger(50)
 	req.ImageId = id
 
-	resp, err := c.ecs.DescribeImages(req)
+	resp, err := c.DescribeImages(req)
 	if err != nil {
 		return Image{}, err
 	}
