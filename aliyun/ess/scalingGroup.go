@@ -2,7 +2,6 @@ package ess
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
@@ -61,8 +60,6 @@ func (c *Client) GetScalingGroupsWithAsync(ctx context.Context) ([]ScalingGroup,
 				scalingGroup.MultiAZPolicy = sg.MultiAZPolicy
 				scalingGroups = append(scalingGroups, scalingGroup)
 			}
-
-			fmt.Printf("Retrived scaling groups, page number: %v\n", resp.PageNumber)
 
 		case err := <-errCh:
 			return nil, err
