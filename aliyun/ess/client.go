@@ -1,15 +1,14 @@
 package ess
 
-import (
-	esssdk "github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
-)
+import "github.com/aliyun/alibaba-cloud-sdk-go/sdk"
+import "github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 
 // Client is the ess client
 type Client struct {
-	*esssdk.Client
+	*ess.Client
 }
 
 // New returns a new ess client
-func New(c *esssdk.Client) *Client {
-	return &Client{c}
+func New(c sdk.Client) *Client {
+	return &Client{&ess.Client{Client: c}}
 }

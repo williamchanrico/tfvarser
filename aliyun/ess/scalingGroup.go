@@ -17,6 +17,7 @@ type ScalingGroup struct {
 	RemovalPolicies  []string
 	VSwitchIDs       []string
 	MultiAZPolicy    string
+	LoadBalancerIDs  []string
 }
 
 // GetScalingGroupsWithAsync will query list of scaling groups
@@ -38,13 +39,11 @@ func (c *Client) GetScalingGroupsWithAsync(ctx context.Context) ([]ScalingGroup,
 	totalPageCount := ((<-firstPageCh).TotalCount / pageSize) + 1
 	close(firstPageCh)
 
-	// Scatter
 	respCh := make(chan *esssdk.DescribeScalingGroupsResponse, totalPageCount)
 	for pageNumber := 1; pageNumber <= totalPageCount; pageNumber++ {
 		go c.getScalingGroupsByPage(ctx, respCh, errCh, pageNumber, pageSize)
 	}
 
-	// Gatter
 	scalingGroups := []ScalingGroup{}
 	for a := 0; a < totalPageCount; a++ {
 		select {
@@ -58,6 +57,7 @@ func (c *Client) GetScalingGroupsWithAsync(ctx context.Context) ([]ScalingGroup,
 				scalingGroup.RemovalPolicies = sg.RemovalPolicies.RemovalPolicy
 				scalingGroup.VSwitchIDs = sg.VSwitchIds.VSwitchId
 				scalingGroup.MultiAZPolicy = sg.MultiAZPolicy
+				scalingGroup.LoadBalancerIDs = sg.LoadBalancerIds.LoadBalancerId
 				scalingGroups = append(scalingGroups, scalingGroup)
 			}
 

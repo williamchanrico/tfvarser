@@ -77,7 +77,13 @@ esssg_vsw_ids          = [
 
 # The order of VSwitches selected when creating new VMs
 esssg_multi_az_policy  = "{{ .MultiAZPolicy }}"
-
+{{ if .LoadBalancerIDs }}
+# If instances in this scaling group need to join SLB
+esssg_loadbalancer_ids = [
+{{ range $index, $element := .LoadBalancerIDs }}{{- if $index }},
+{{- end }}{{ if not $index }} {{ end }} "{{ $element -}}"{{ end }}
+]
+{{ end }}
 # Import command
 # terragrunt import alicloud_ess_scaling_group.esssg {{ .ScalingGroupID }}
 `
