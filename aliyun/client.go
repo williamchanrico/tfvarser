@@ -1,8 +1,10 @@
 package aliyun
 
 import (
-	ecssdk "github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
-	esssdk "github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
+	"time"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials"
 	"github.com/williamchanrico/tfvarser/aliyun/ecs"
 	"github.com/williamchanrico/tfvarser/aliyun/ess"
 )
@@ -22,30 +24,20 @@ type Client struct {
 
 // New returns new aliyun api client
 func New(cfg Config) (*Client, error) {
-	ecsClient, err := ecssdk.NewClientWithAccessKey(
-		cfg.RegionID,
-		cfg.AccessKey,
-		cfg.SecretKey,
-	)
-	ecsClient.EnableAsync(5, 10)
+	creds := credentials.NewAccessKeyCredential(cfg.AccessKey, cfg.SecretKey)
+	config := sdk.NewConfig().
+		WithAutoRetry(true).
+		WithMaxRetryTime(3).
+		WithTimeout(10 * time.Second).
+		WithEnableAsync(true)
+	acsClient, err := sdk.NewClientWithOptions(cfg.RegionID, config, creds)
+	acsClient.EnableAsync(5, 100)
 	if err != nil {
 		return nil, err
 	}
-	ecs := ecs.New(ecsClient)
-
-	essClient, err := esssdk.NewClientWithAccessKey(
-		cfg.RegionID,
-		cfg.AccessKey,
-		cfg.SecretKey,
-	)
-	essClient.EnableAsync(5, 10)
-	if err != nil {
-		return nil, err
-	}
-	ess := ess.New(essClient)
 
 	return &Client{
-		ESS: ess,
-		ECS: ecs,
+		ESS: ess.New(*acsClient),
+		ECS: ecs.New(*acsClient),
 	}, nil
 }

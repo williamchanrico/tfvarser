@@ -27,32 +27,6 @@ func aliyunProvider(appFlags *Flags, cfg Config) (int, error) {
 }
 
 // aliyunAutoscaleObjects generates autoscale related objects
-// generated structure:
-// ├── testapp
-// │   ├── autoscale
-// │   │   ├── ess-alarms
-// │   │   │   ├── go-testapp-downscale
-// │   │   │   │   └── terraform.tfvars
-// │   │   │   └── go-testapp-upscale
-// │   │   │       └── terraform.tfvars
-// │   │   ├── ess-lifecycle-hooks
-// │   │   │   ├── autoscaledown-event-mns-queue
-// │   │   │   │   └── terraform.tfvars
-// │   │   │   └── autoscaleup-event-mns-queue
-// │   │   │       └── terraform.tfvars
-// │   │   ├── ess-scaling-configurations
-// │   │   │   ├── go-testapp-1c-1gb
-// │   │   │   │   └── terraform.tfvars
-// │   │   │   └── go-testapp-1c-500mb
-// │   │   │       └── terraform.tfvars
-// │   │   ├── ess-scaling-group
-// │   │   │   └── terraform.tfvars
-// │   │   └── ess-scaling-rules
-// │   │       ├── auto-downscale
-// │   │       │   └── terraform.tfvars
-// │   │       └── auto-upscale
-// │   │           └── terraform.tfvars
-//
 func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 	aliClient, err := aliyun.New(aliyun.Config{
 		AccessKey: cfg.AlicloudAccessKey,
