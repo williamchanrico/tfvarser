@@ -10,7 +10,7 @@ ifndef REVISION
 endif
 
 ifndef VERSION
-	override VERSION = 0.1.0
+	override VERSION = v0.1.0
 endif
 
 APP_NAME     := $(NAME)
