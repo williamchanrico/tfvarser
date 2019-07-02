@@ -17,15 +17,16 @@ const (
 type ScalingRule struct {
 	ess.ScalingRule
 	ScalingGroup ess.ScalingGroup
-	ServiceName  string
+
+	Extras map[string]interface{}
 }
 
 // NewScalingRule return a generator for the scaling rule
-func NewScalingRule(sr ess.ScalingRule, sg ess.ScalingGroup, serviceName string) *ScalingRule {
+func NewScalingRule(sr ess.ScalingRule, sg ess.ScalingGroup, extras map[string]interface{}) *ScalingRule {
 	return &ScalingRule{
 		ScalingRule:  sr,
 		ScalingGroup: sg,
-		ServiceName:  serviceName,
+		Extras:       extras,
 	}
 }
 
@@ -57,10 +58,10 @@ func (s *ScalingRule) Template() string {
 
 # ESS scaling group (ID: {{ .ScalingGroup.ScalingGroupID }})
 esssg_remote_state_bucket = "tkpd-tg-alicloud"
-esssg_remote_state_key    = "{{ .ServiceName }}/autoscale/ess-scaling-group/terraform.tfstate"
+esssg_remote_state_key    = "{{ index .Extras "serviceName" }}/autoscale/ess-scaling-group/terraform.tfstate"
 
 # ESS scaling rule
-esssr_scaling_rule_name = "{{ .ScalingRuleName }}"
+esssr_scaling_rule_name = "{{ trimPrefix .ScalingRuleName "tf-" }}"
 esssr_adjustment_type   = "{{ .AdjustmentType }}"
 esssr_adjustment_value  = "{{ .AdjustmentValue }}"
 esssr_cooldown          = {{ .Cooldown }}

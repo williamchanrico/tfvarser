@@ -17,15 +17,16 @@ const (
 type LifecycleHook struct {
 	ess.LifecycleHook
 	ScalingGroup ess.ScalingGroup
-	ServiceName  string
+
+	Extras map[string]interface{}
 }
 
 // NewLifecycleHook return a generator for the lifecycle hook
-func NewLifecycleHook(lh ess.LifecycleHook, sg ess.ScalingGroup, serviceName string) *LifecycleHook {
+func NewLifecycleHook(lh ess.LifecycleHook, sg ess.ScalingGroup, extras map[string]interface{}) *LifecycleHook {
 	return &LifecycleHook{
 		LifecycleHook: lh,
 		ScalingGroup:  sg,
-		ServiceName:   serviceName,
+		Extras:        extras,
 	}
 }
 
@@ -57,7 +58,7 @@ func (s *LifecycleHook) Template() string {
 
 # ESS scaling group (ID: {{ .ScalingGroup.ScalingGroupID }})
 esssg_remote_state_bucket = "tkpd-tg-alicloud"
-esssg_remote_state_key    = "{{ .ServiceName }}/autoscale/ess-scaling-group/terraform.tfstate"
+esssg_remote_state_key    = "{{ index .Extras "serviceName" }}/autoscale/ess-scaling-group/terraform.tfstate"
 
 # MNS queue
 mq_remote_state_bucket = "tkpd-tg-alicloud"

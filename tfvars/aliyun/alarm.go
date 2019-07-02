@@ -18,16 +18,17 @@ type Alarm struct {
 	ess.Alarm
 	ScalingRule  ess.ScalingRule
 	ScalingGroup ess.ScalingGroup
-	ServiceName  string
+
+	Extras map[string]interface{}
 }
 
 // NewAlarm return a generator for the alarm
-func NewAlarm(al ess.Alarm, sg ess.ScalingGroup, sr ess.ScalingRule, serviceName string) *Alarm {
+func NewAlarm(al ess.Alarm, sg ess.ScalingGroup, sr ess.ScalingRule, extras map[string]interface{}) *Alarm {
 	return &Alarm{
 		Alarm:        al,
 		ScalingRule:  sr,
 		ScalingGroup: sg,
-		ServiceName:  serviceName,
+		Extras:       extras,
 	}
 }
 
@@ -59,14 +60,14 @@ func (s *Alarm) Template() string {
 
 # ESS scaling group (ID: {{ .ScalingGroupID }})
 esssg_remote_state_bucket = "tkpd-tg-alicloud"
-esssg_remote_state_key    = "{{ .ServiceName }}/autoscale/ess-scaling-group/terraform.tfstate"
+esssg_remote_state_key    = "{{ index .Extras "serviceName" }}/autoscale/ess-scaling-group/terraform.tfstate"
 
 # ESS scaling rule
 esssr_remote_state_bucket = "tkpd-tg-alicloud"
-esssr_remote_state_key    = "{{ .ServiceName }}/autoscale/ess-scaling-rules/{{ .ScalingRule.ScalingRuleName }}/terraform.tfstate"
+esssr_remote_state_key    = "{{ index .Extras "serviceName" }}/autoscale/ess-scaling-rules/{{ .ScalingRule.ScalingRuleName }}/terraform.tfstate"
 
 # ESS alarm
-essa_name                = "{{ .AlarmName }}"
+essa_name                = "{{ trimPrefix .AlarmName "tf-" }}"
 essa_enabled             = {{ .Enable }}
 essa_metric_type         = "{{ .MetricType }}"
 essa_metric_name         = "{{ .MetricName }}"

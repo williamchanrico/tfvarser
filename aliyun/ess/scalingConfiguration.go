@@ -49,11 +49,10 @@ func (c *Client) GetScalingConfigurations(scalingGroupID string) ([]ScalingConfi
 			scalingConfiguration.InstanceName = sc.InstanceName
 			scalingConfiguration.InstanceType = sc.InstanceType
 			scalingConfiguration.InstanceTypes = sc.InstanceTypes.InstanceType
-			scalingConfiguration.Enable = false
+			scalingConfiguration.Enable = true // Currently there's no way to query this
 			scalingConfiguration.Active = false
 			if sc.LifecycleState == "Active" {
 				scalingConfiguration.Active = true
-				scalingConfiguration.Enable = true
 			}
 			scalingConfiguration.KeyPairName = sc.KeyPairName
 			scalingConfiguration.RAMRoleName = sc.RamRoleName
