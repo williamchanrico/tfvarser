@@ -17,17 +17,16 @@ const (
 type ScalingConfiguration struct {
 	ess.ScalingConfiguration
 	ScalingGroup ess.ScalingGroup
-	ServiceName  string
-	ImageName    string
+
+	Extras map[string]interface{}
 }
 
 // NewScalingConfiguration return a generator for the scaling configuration
-func NewScalingConfiguration(sc ess.ScalingConfiguration, sg ess.ScalingGroup, serviceName, imageName string) *ScalingConfiguration {
+func NewScalingConfiguration(sc ess.ScalingConfiguration, sg ess.ScalingGroup, extras map[string]interface{}) *ScalingConfiguration {
 	return &ScalingConfiguration{
 		ScalingConfiguration: sc,
 		ScalingGroup:         sg,
-		ServiceName:          serviceName,
-		ImageName:            imageName,
+		Extras:               extras,
 	}
 }
 
@@ -59,18 +58,18 @@ func (s *ScalingConfiguration) Template() string {
 
 # ESS scaling group (ID: {{ .ScalingGroup.ScalingGroupID }})
 esssg_remote_state_bucket = "tkpd-tg-alicloud"
-esssg_remote_state_key    = "{{ .ServiceName }}/autoscale/ess-scaling-group/terraform.tfstate"
+esssg_remote_state_key    = "{{ index .Extras "serviceName" }}/autoscale/ess-scaling-group/terraform.tfstate"
 
 # Security group
 sg_remote_state_bucket = "tkpd-tg-alicloud-infra"
 sg_remote_state_key    = "security-groups/intranet/security-group/terraform.tfstate"
 
 # ECS Images
-images_name_regex = "{{ .ImageName }}"
+images_name_regex = "{{ index .Extras "imageName" }}"
 
 # ESS scaling configuration
-esssc_scaling_configuration_name = "{{ .ScalingConfigurationName }}"
-esssc_instance_name              = "{{ .ScalingGroup.ScalingGroupName }}"
+esssc_scaling_configuration_name = "{{ trimPrefix .ScalingConfigurationName "tf-" }}"
+esssc_instance_name              = "{{ index .Extras "serviceName" }}"
 esssc_instance_types             = [
 {{ range $index, $element := .InstanceTypes }}{{- if $index }},
 {{- end }}{{- if not $index }} {{ end }} "{{ $element -}}"{{ end }}

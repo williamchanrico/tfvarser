@@ -22,10 +22,17 @@ type Service struct {
 }
 
 // New return new tfvars generator
-func New(gen Generator) *Service {
+func New(gen Generator, funcMap ...template.FuncMap) *Service {
+	var tmpl *template.Template
+	if len(funcMap) > 0 {
+		tmpl = template.New(gen.Name()).Funcs(funcMap[0])
+	} else {
+		tmpl = template.New(gen.Name())
+	}
+
 	return &Service{
 		generator: gen,
-		tmpl:      template.Must(template.New("").Parse(gen.Template())),
+		tmpl:      template.Must(tmpl.Parse(gen.Template())),
 	}
 }
 

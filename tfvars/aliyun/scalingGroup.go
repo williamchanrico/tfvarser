@@ -17,16 +17,14 @@ const (
 type ScalingGroup struct {
 	ess.ScalingGroup
 
-	// ServiceName is literally a service name in the scaling group
-	// We use it to separate every services scaling group directory
-	ServiceName string
+	Extras map[string]interface{}
 }
 
 // NewScalingGroup return a generator for the scaling group
-func NewScalingGroup(sg ess.ScalingGroup, serviceName string) *ScalingGroup {
+func NewScalingGroup(sg ess.ScalingGroup, extras map[string]interface{}) *ScalingGroup {
 	return &ScalingGroup{
 		ScalingGroup: sg,
-		ServiceName:  serviceName,
+		Extras:       extras,
 	}
 }
 
@@ -57,7 +55,7 @@ func (s *ScalingGroup) Template() string {
 }
 
 # Name of the scaling group (ID: {{ .ScalingGroupID }})
-esssg_name = "{{ .ScalingGroupName }}"
+esssg_name = "{{ trimPrefix .ScalingGroupName "tf-" }}"
 
 # Minimum and maximum number of VMs in the scaling group
 esssg_min_size = {{ .MinSize }}

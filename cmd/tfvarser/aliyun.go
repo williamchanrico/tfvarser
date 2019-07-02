@@ -6,6 +6,7 @@ import (
 	"log"
 	"path"
 	"strings"
+	"text/template"
 	"time"
 
 	col "github.com/logrusorgru/aurora"
@@ -37,6 +38,10 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 		return 1, err
 	}
 
+	funcMap := template.FuncMap{
+		"trimPrefix": trimPrefix,
+	}
+
 	fmt.Printf("Querying %v from cloud provider\n", col.Cyan("Scaling Group(s)"))
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -60,12 +65,13 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 
 		// We want to separate every scaling group by service name
 		// we will inject this service name to generators that need this service name
-		serviceName := parseServiceNameFromScalingGroup(sg.ScalingGroupName)
-		serviceDir := path.Join(".", serviceName, "autoscale")
+		extras := make(map[string]interface{})
+		extras["serviceName"] = parseServiceNameFromScalingGroup(sg.ScalingGroupName)
+		serviceDir := path.Join(".", extras["serviceName"].(string), "autoscale")
 
 		// Scaling Group
 		scalingGroupDir := path.Join(serviceDir, "ess-scaling-group")
-		sgGenerator := tfvars.New(tfvarsaliyun.NewScalingGroup(sg, serviceName))
+		sgGenerator := tfvars.New(tfvarsaliyun.NewScalingGroup(sg, extras), funcMap)
 		err = sgGenerator.Generate(scalingGroupDir, "terraform.tfvars")
 		if err != nil {
 			log.Printf("error generating %v: %v\n", path.Join(scalingGroupDir, "terraform.tfvars"), err.Error())
@@ -86,8 +92,8 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 				sr.ScalingRuleName = "auto-upscale"
 			}
 
-			scalingRuleDir := path.Join(scalingRuleParentDir, sr.ScalingRuleName)
-			srGenerator := tfvars.New(tfvarsaliyun.NewScalingRule(sr, sg, serviceName))
+			scalingRuleDir := path.Join(scalingRuleParentDir, strings.TrimPrefix(sr.ScalingRuleName, "tf-"))
+			srGenerator := tfvars.New(tfvarsaliyun.NewScalingRule(sr, sg, extras), funcMap)
 			err = srGenerator.Generate(scalingRuleDir, "terraform.tfvars")
 			if err != nil {
 				log.Printf("error generating %v: %v\n", path.Join(scalingRuleDir, "terraform.tfvars"), err.Error())
@@ -115,8 +121,8 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 				}
 			}
 
-			alarmDir := path.Join(alarmParentDir, al.AlarmName)
-			alGenerator := tfvars.New(tfvarsaliyun.NewAlarm(al, sg, sr, serviceName))
+			alarmDir := path.Join(alarmParentDir, strings.TrimPrefix(al.AlarmName, "tf-"))
+			alGenerator := tfvars.New(tfvarsaliyun.NewAlarm(al, sg, sr, extras), funcMap)
 			err = alGenerator.Generate(alarmDir, "terraform.tfvars")
 			if err != nil {
 				log.Printf("error generating %v: %v\n", path.Join(alarmDir, "terraform.tfvars"), err.Error())
@@ -138,7 +144,7 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 			}
 
 			lifecycleHookDir := path.Join(lifecycleHookParentDir, lh.LifecycleHookName)
-			lhGenerator := tfvars.New(tfvarsaliyun.NewLifecycleHook(lh, sg, serviceName))
+			lhGenerator := tfvars.New(tfvarsaliyun.NewLifecycleHook(lh, sg, extras), funcMap)
 			err = lhGenerator.Generate(lifecycleHookDir, "terraform.tfvars")
 			if err != nil {
 				log.Printf("error generating %v: %v\n", path.Join(lifecycleHookDir, "terraform.tfvars"), err.Error())
@@ -153,13 +159,13 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 		scalingConfigurationParentDir := path.Join(serviceDir, "ess-scaling-configurations")
 		for _, sc := range scalingConfigurations {
 			// Template needs ImageName from ECS API, will inject this to the generator
-			imageName, err := aliClient.ECS.GetImageNameByID(sc.ImageID)
+			extras["imageName"], err = aliClient.ECS.GetImageNameByID(sc.ImageID)
 			if err != nil {
-				imageName = "IMAGE_NOT_FOUND_REPLACE_ME"
+				extras["imageName"] = "IMAGE_NOT_FOUND_REPLACE_ME"
 			}
 
-			scalingConfigurationDir := path.Join(scalingConfigurationParentDir, sc.ScalingConfigurationName)
-			scGenerator := tfvars.New(tfvarsaliyun.NewScalingConfiguration(sc, sg, serviceName, imageName))
+			scalingConfigurationDir := path.Join(scalingConfigurationParentDir, strings.TrimPrefix(sc.ScalingConfigurationName, "tf-"))
+			scGenerator := tfvars.New(tfvarsaliyun.NewScalingConfiguration(sc, sg, extras), funcMap)
 			err = scGenerator.Generate(scalingConfigurationDir, "terraform.tfvars")
 			if err != nil {
 				log.Printf("error generating %v: %v\n", path.Join(scalingConfigurationDir, "terraform.tfvars"), err.Error())
@@ -177,6 +183,10 @@ func contains(slice []string, str string) bool {
 		}
 	}
 	return false
+}
+
+func trimPrefix(s, prefix string) string {
+	return strings.TrimPrefix(s, prefix)
 }
 
 // parseServiceNameFromScalingGroup to get service name without any scaling group specific tags
