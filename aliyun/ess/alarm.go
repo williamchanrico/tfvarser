@@ -10,6 +10,7 @@ type Alarm struct {
 	AlarmName          string
 	AlarmID            string
 	ScalingGroupID     string
+	Enable             bool
 	AlarmActions       []string
 	MetricType         string
 	MetricName         string
@@ -39,6 +40,7 @@ func (c *Client) GetAlarms(scalingGroupID string) ([]Alarm, error) {
 			alarm.AlarmName = al.Name
 			alarm.AlarmID = al.AlarmTaskId
 			alarm.ScalingGroupID = al.ScalingGroupId
+			alarm.Enable = al.Enable
 			alarm.MetricType = al.MetricType
 			alarm.MetricName = al.MetricName
 			alarm.Period = al.Period

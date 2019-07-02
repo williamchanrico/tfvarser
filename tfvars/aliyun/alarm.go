@@ -67,6 +67,7 @@ esssr_remote_state_key    = "{{ .ServiceName }}/autoscale/ess-scaling-rules/{{ .
 
 # ESS alarm
 essa_name                = "{{ .AlarmName }}"
+essa_enabled             = {{ .Enable }}
 essa_metric_type         = "{{ .MetricType }}"
 essa_metric_name         = "{{ .MetricName }}"
 essa_period              = {{ .Period }}
