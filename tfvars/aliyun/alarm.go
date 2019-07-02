@@ -68,7 +68,7 @@ esssr_remote_state_key    = "{{ index .Extras "serviceName" }}/autoscale/ess-sca
 
 # ESS alarm
 essa_name                = "{{ trimPrefix .AlarmName "tf-" }}"
-essa_enabled             = {{ .Enable }}
+essa_enable              = {{ .Enable }}
 essa_metric_type         = "{{ .MetricType }}"
 essa_metric_name         = "{{ .MetricName }}"
 essa_period              = {{ .Period }}
