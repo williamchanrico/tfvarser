@@ -63,12 +63,14 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 		log.Debugf("Limiting search to Scaling Group with IDs: %v", limitIDs)
 	}
 
+	found := false
 	for _, sg := range scalingGroups {
 		// Only process the ones in limit variables (if either of the limit flags were specified)
 		if !(contains(limitNames, sg.ScalingGroupName) || contains(limitIDs, sg.ScalingGroupID)) {
 			continue
 		}
-		fmt.Printf("\nGenerating tfvars for scaling group: %v\n", col.Green(sg.ScalingGroupName))
+		found = true
+		fmt.Printf("Generating tfvars for scaling group: %v\n", col.Green(sg.ScalingGroupName))
 
 		// We want to separate every scaling group by service name
 		// we will inject this service name to generators that need this service name
@@ -187,6 +189,10 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 				log.Errorf("Error generating %v: %v\n", path.Join(scalingConfigurationDir, "terraform.tfvars"), err.Error())
 			}
 		}
+	}
+
+	if !found {
+		log.Warnf("No Scaling Group was matched")
 	}
 
 	return 0, nil

@@ -13,7 +13,7 @@ import (
 var (
 	version            string
 	showVersionAndExit bool
-	verbose            bool
+	quiet              bool
 )
 
 func main() {
@@ -23,7 +23,7 @@ func main() {
 	flag.StringVar(&appFlags.LimitNames, "limit-names", "", "Limit generation of objects with the exact names (separated by comma or space)")
 	flag.StringVar(&appFlags.LimitIDs, "limit-ids", "", "Limit generation of objects with the exact IDs (separated by comma or space)")
 
-	flag.BoolVar(&verbose, "verbose", false, "Show verbose output")
+	flag.BoolVar(&quiet, "quiet", false, "Disable verbose output")
 	flag.BoolVar(&showVersionAndExit, "version", false, "Show version and exit")
 	flag.Parse()
 
@@ -32,9 +32,12 @@ func main() {
 		os.Exit(0)
 	}
 
-	if verbose {
-		log.SetLevelString("debug")
+	// Purposely set verbose output by default
+	log.SetLevelString("debug")
+	if quiet {
+		log.SetLevelString("info")
 	}
+	log.Debug("To disable verbose output, run with --quiet flag")
 
 	var cfg tfvarser.Config
 	err := envconfig.Process("", &cfg)
