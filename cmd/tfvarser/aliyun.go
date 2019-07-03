@@ -3,7 +3,6 @@ package tfvarser
 import (
 	"context"
 	"fmt"
-	"log"
 	"path"
 	"strings"
 	"text/template"
@@ -13,6 +12,7 @@ import (
 
 	"github.com/williamchanrico/tfvarser/aliyun"
 	"github.com/williamchanrico/tfvarser/aliyun/ess"
+	"github.com/williamchanrico/tfvarser/log"
 	"github.com/williamchanrico/tfvarser/tfvars"
 	tfvarsaliyun "github.com/williamchanrico/tfvarser/tfvars/aliyun"
 )
@@ -49,19 +49,26 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 	if err != nil {
 		return 1, err
 	}
+	log.Debugf("Retrieved %v Scaling Group(s)", len(scalingGroups))
 
 	// We want to act on limit flags, so start processing them here
 	// limitNames: will filter on ScalingGroupName
 	// limitIDs: will filter on ScalingGroupID
 	limitNames := strings.Split(appFlags.LimitNames, ",")
+	if len(limitNames) > 0 {
+		log.Debugf("Limiting search to Scaling Group with names: %v", limitNames)
+	}
 	limitIDs := strings.Split(appFlags.LimitIDs, ",")
+	if len(limitIDs) > 0 {
+		log.Debugf("Limiting search to Scaling Group with IDs: %v", limitIDs)
+	}
 
 	for _, sg := range scalingGroups {
 		// Only process the ones in limit variables (if either of the limit flags were specified)
 		if !(contains(limitNames, sg.ScalingGroupName) || contains(limitIDs, sg.ScalingGroupID)) {
 			continue
 		}
-		fmt.Printf("Generating tfvars for scaling group: %v\n", col.Green(sg.ScalingGroupName))
+		fmt.Printf("\nGenerating tfvars for scaling group: %v\n", col.Green(sg.ScalingGroupName))
 
 		// We want to separate every scaling group by service name
 		// we will inject this service name to generators that need this service name
@@ -72,12 +79,14 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 		// Scaling Group
 		scalingGroupDir := path.Join(serviceDir, "ess-scaling-group")
 		sgGenerator := tfvars.New(tfvarsaliyun.NewScalingGroup(sg, extras), funcMap)
+		log.Debugf("Generating %v", path.Join(scalingGroupDir, "terraform.tfvars"))
 		err = sgGenerator.Generate(scalingGroupDir, "terraform.tfvars")
 		if err != nil {
-			log.Printf("error generating %v: %v\n", path.Join(scalingGroupDir, "terraform.tfvars"), err.Error())
+			log.Errorf("Error generating %v: %v\n", path.Join(scalingGroupDir, "terraform.tfvars"), err.Error())
 		}
 
 		// Scaling Rule
+		log.Debugf("Getting Scaling Rule(s) in %v", sg.ScalingGroupName)
 		scalingRules, err := aliClient.ESS.GetScalingRules(sg.ScalingGroupID)
 		if err != nil {
 			return 1, err
@@ -94,13 +103,15 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 
 			scalingRuleDir := path.Join(scalingRuleParentDir, strings.TrimPrefix(sr.ScalingRuleName, "tf-"))
 			srGenerator := tfvars.New(tfvarsaliyun.NewScalingRule(sr, sg, extras), funcMap)
+			log.Debugf("Generating %v", path.Join(scalingRuleDir, "terraform.tfvars"))
 			err = srGenerator.Generate(scalingRuleDir, "terraform.tfvars")
 			if err != nil {
-				log.Printf("error generating %v: %v\n", path.Join(scalingRuleDir, "terraform.tfvars"), err.Error())
+				log.Errorf("Error generating %v: %v\n", path.Join(scalingRuleDir, "terraform.tfvars"), err.Error())
 			}
 		}
 
 		// Alarm (Event-trigger task)
+		log.Debugf("Getting Alarms related to %v", sg.ScalingGroupName)
 		alarms, err := aliClient.ESS.GetAlarms(sg.ScalingGroupID)
 		if err != nil {
 			return 1, nil
@@ -123,13 +134,15 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 
 			alarmDir := path.Join(alarmParentDir, strings.TrimPrefix(al.AlarmName, "tf-"))
 			alGenerator := tfvars.New(tfvarsaliyun.NewAlarm(al, sg, sr, extras), funcMap)
+			log.Debugf("Generating %v", path.Join(alarmDir, "terraform.tfvars"))
 			err = alGenerator.Generate(alarmDir, "terraform.tfvars")
 			if err != nil {
-				log.Printf("error generating %v: %v\n", path.Join(alarmDir, "terraform.tfvars"), err.Error())
+				log.Errorf("Error generating %v: %v\n", path.Join(alarmDir, "terraform.tfvars"), err.Error())
 			}
 		}
 
 		// Lifecycle Hook
+		log.Debugf("Getting LifecycleHook(s) in %v", sg.ScalingGroupName)
 		lifecycleHooks, err := aliClient.ESS.GetLifecycleHooks(sg.ScalingGroupID)
 		if err != nil {
 			return 1, nil
@@ -145,13 +158,15 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 
 			lifecycleHookDir := path.Join(lifecycleHookParentDir, lh.LifecycleHookName)
 			lhGenerator := tfvars.New(tfvarsaliyun.NewLifecycleHook(lh, sg, extras), funcMap)
+			log.Debugf("Generating %v", path.Join(lifecycleHookDir, "terraform.tfvars"))
 			err = lhGenerator.Generate(lifecycleHookDir, "terraform.tfvars")
 			if err != nil {
-				log.Printf("error generating %v: %v\n", path.Join(lifecycleHookDir, "terraform.tfvars"), err.Error())
+				log.Errorf("Error generating %v: %v\n", path.Join(lifecycleHookDir, "terraform.tfvars"), err.Error())
 			}
 		}
 
 		// Scaling Configuration
+		log.Debugf("Getting Scaling Configuration(s) in %v", sg.ScalingGroupName)
 		scalingConfigurations, err := aliClient.ESS.GetScalingConfigurations(sg.ScalingGroupID)
 		if err != nil {
 			return 1, nil
@@ -166,9 +181,10 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 
 			scalingConfigurationDir := path.Join(scalingConfigurationParentDir, strings.TrimPrefix(sc.ScalingConfigurationName, "tf-"))
 			scGenerator := tfvars.New(tfvarsaliyun.NewScalingConfiguration(sc, sg, extras), funcMap)
+			log.Debugf("Generating %v", path.Join(scalingConfigurationDir, "terraform.tfvars"))
 			err = scGenerator.Generate(scalingConfigurationDir, "terraform.tfvars")
 			if err != nil {
-				log.Printf("error generating %v: %v\n", path.Join(scalingConfigurationDir, "terraform.tfvars"), err.Error())
+				log.Errorf("Error generating %v: %v\n", path.Join(scalingConfigurationDir, "terraform.tfvars"), err.Error())
 			}
 		}
 	}
