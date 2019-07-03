@@ -65,7 +65,7 @@ sg_remote_state_bucket = "tkpd-tg-alicloud-infra"
 sg_remote_state_key    = "security-groups/intranet/security-group/terraform.tfstate"
 
 # ECS Images
-images_name_regex = "{{ index .Extras "imageName" }}"
+images_name_regex = "^{{ index .Extras "imageName" }}$"
 
 # ESS scaling configuration
 esssc_scaling_configuration_name = "{{ trimPrefix .ScalingConfigurationName "tf-" }}"
