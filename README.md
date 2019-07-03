@@ -12,7 +12,7 @@ So keeping the source close by will come in handy every now and then (modifying,
 
 ### Installation
 
-`$ make go-build` will build the `tfvarser` binary in `./bin/tfvarser`
+`$ make go-build` will build the `tfvarser` binary in `./bin/tfvarser` according to your machine's OS and arch.
 
 You can also build it yourself using simple `gotools`
 
@@ -25,11 +25,18 @@ Requires some form of authentication to interact with cloud provider's API
 ```
 export ALICLOUD_ACCESS_KEY=
 export ALICLOUD_SECRET_KEY=
+export ALICLOUD_REGION_ID=ap-southeast-1 # default
 ```
 
 ```
+# example generate by names
+$ tfvarser -provider ali -obj ess -limit-names testapp,node-qwertyapp,go-asdfapp
+
+# or just import by ID
+$ tfvarser -provider ali -obj ess -limit-ids asdf1234
+
+# or just import one at a time
 $ tfvarser -provider ali -obj ess -limit-names testapp
-
 ```
 
 Command above will generate the following structure:
@@ -60,8 +67,6 @@ Command above will generate the following structure:
 │   │           └── terraform.tfvars
 ```
 
-Every provider objects like ESS or ECS in Aliyun may decide what the attribute that limit-names and limit-ids correspond to.
+Every provider objects e.g. `ESS` or `ECS` in Aliyun may decide what `limit-names` and `limit-ids` correspond to.
 
-For example, in ESS Scaling Group, limit-names and limit-ids will limit by scaling group's name and ID as you might've guessed.
-
-Currently, the tfvars templates are all hardcoded into the source.
+For example, in Aliyun ESS object `limit-names` and `limit-ids` will limit by scaling group's name and ID.
