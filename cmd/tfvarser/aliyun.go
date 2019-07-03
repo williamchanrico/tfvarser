@@ -97,9 +97,9 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 		for _, sr := range scalingRules {
 			// Replace scaling rule name with auto-{upscale/downscale} instead
 			// when matched a criteria
-			if strings.Contains(sr.ScalingRuleName, "downscale") {
+			if strings.Contains(sr.ScalingRuleName, "-down") {
 				sr.ScalingRuleName = "auto-downscale"
-			} else if strings.Contains(sr.ScalingRuleName, "upscale") {
+			} else if strings.Contains(sr.ScalingRuleName, "-up") {
 				sr.ScalingRuleName = "auto-upscale"
 			}
 
@@ -127,9 +127,9 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 				sr, _ = aliClient.ESS.GetScalingRuleByAri(al.AlarmActions[0])
 
 				// Replace scaling rule name with auto-{upscale/downscale} when matched a criteria
-				if strings.Contains(sr.ScalingRuleName, "-upscale") {
+				if strings.Contains(sr.ScalingRuleName, "-up") {
 					sr.ScalingRuleName = "auto-upscale"
-				} else if strings.Contains(sr.ScalingRuleName, "-downscale") {
+				} else if strings.Contains(sr.ScalingRuleName, "-down") {
 					sr.ScalingRuleName = "auto-downscale"
 				}
 			}
