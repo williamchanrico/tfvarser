@@ -80,7 +80,7 @@ esssc_key_name                   = "{{ .KeyPairName }}"
 esssc_role_name                  = "{{ .RAMRoleName }}"
 
 esssc_user_data = <<EOF
-{{ .UserData -}}
+{{ .UserData }}
 EOF
 
 esssc_tags_tribe     = "{{ if .Tags.tribe }}{{ index .Tags "tribe" }}{{ end }}"

@@ -43,7 +43,7 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 	}
 
 	fmt.Printf("Querying %v from cloud provider\n", col.Cyan("Scaling Group(s)"))
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	scalingGroups, err := aliClient.ESS.GetScalingGroupsWithAsync(ctx)
 	if err != nil {

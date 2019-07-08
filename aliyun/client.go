@@ -28,7 +28,7 @@ func New(cfg Config) (*Client, error) {
 	config := sdk.NewConfig().
 		WithAutoRetry(true).
 		WithMaxRetryTime(3).
-		WithTimeout(10 * time.Second).
+		WithTimeout(20 * time.Second).
 		WithEnableAsync(true)
 	acsClient, err := sdk.NewClientWithOptions(cfg.RegionID, config, creds)
 	acsClient.EnableAsync(5, 100)
