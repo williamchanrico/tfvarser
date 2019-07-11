@@ -28,7 +28,7 @@ func main() {
 	flag.Parse()
 
 	if showVersionAndExit {
-		fmt.Printf("Tfvars %v\n", version)
+		fmt.Printf("Tfvarser %v\n", version)
 		os.Exit(0)
 	}
 
