@@ -37,6 +37,7 @@ func main() {
 	if quiet {
 		log.SetLevelString("info")
 	}
+	log.Infof("Using tfvarser %v", version)
 	log.Debug("To disable verbose output, run with --quiet flag")
 
 	var cfg tfvarser.Config
