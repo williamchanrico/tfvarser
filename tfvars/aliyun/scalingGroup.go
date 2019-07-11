@@ -54,29 +54,26 @@ func (s *ScalingGroup) Template() string {
   }
 }
 
-# Name of the scaling group (ID: {{ .ScalingGroupID }})
+# VPC VSwitch
+vsw_remote_state_bucket = "tkpd-tg-alicloud-infra"
+vsw_remote_state_keys   = [
+   "vswitches/app/terraform.tfstate",
+   "vswitches/app-2/terraform.tfstate"
+]
+
+# ESS Scaling Group
 esssg_name = "{{ trimPrefix .ScalingGroupName "tf-" }}"
 
-# Minimum and maximum number of VMs in the scaling group
 esssg_min_size = {{ .MinSize }}
 esssg_max_size = {{ .MaxSize }}
 
-# When downscaling, this specifies the order of VMs selected for removal
 esssg_removal_policies = [
 {{ range $index, $element := .RemovalPolicies }}{{- if $index }},
 {{- end }}{{ if not $index }} {{ end }} "{{ $element -}}"{{ end }}
 ]
 
-# VSwitches that will be used for created VMs, selection algorithm is based on esssg_multi_az_policy
-esssg_vsw_ids          = [
-{{ range $index, $element := .VSwitchIDs }}{{- if $index }},
-{{- end }}{{ if not $index }} {{ end }} "{{ $element -}}"{{ end }}
-]
-
-# The order of VSwitches selected when creating new VMs
 esssg_multi_az_policy  = "{{ .MultiAZPolicy }}"
 {{ if .LoadBalancerIDs }}
-# If instances in this scaling group need to join SLB
 esssg_loadbalancer_ids = [
 {{ range $index, $element := .LoadBalancerIDs }}{{- if $index }},
 {{- end }}{{ if not $index }} {{ end }} "{{ $element -}}"{{ end }}

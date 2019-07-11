@@ -28,7 +28,7 @@ func main() {
 	flag.Parse()
 
 	if showVersionAndExit {
-		fmt.Printf("Tfvars %v\n", version)
+		fmt.Printf("Tfvarser %v\n", version)
 		os.Exit(0)
 	}
 
@@ -37,6 +37,7 @@ func main() {
 	if quiet {
 		log.SetLevelString("info")
 	}
+	log.Infof("Using tfvarser %v", version)
 	log.Debug("To disable verbose output, run with --quiet flag")
 
 	var cfg tfvarser.Config
