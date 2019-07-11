@@ -56,18 +56,18 @@ func (s *ScalingConfiguration) Template() string {
   }
 }
 
-# ESS scaling group (ID: {{ .ScalingGroup.ScalingGroupID }})
+# ESS Scaling group (ID: {{ .ScalingGroup.ScalingGroupID }})
 esssg_remote_state_bucket = "tkpd-tg-alicloud"
 esssg_remote_state_key    = "{{ index .Extras "serviceName" }}/autoscale/ess-scaling-group/terraform.tfstate"
 
-# Security group
+# ECS Security group
 sg_remote_state_bucket = "tkpd-tg-alicloud-infra"
 sg_remote_state_key    = "security-groups/intranet/security-group/terraform.tfstate"
 
 # ECS Images
 images_name_regex = "^{{ index .Extras "imageName" }}$"
 
-# ESS scaling configuration
+# ESS Scaling configuration
 esssc_scaling_configuration_name = "{{ trimPrefix .ScalingConfigurationName "tf-" }}"
 esssc_instance_name              = "{{ index .Extras "serviceName" }}"
 esssc_instance_types             = [
@@ -80,7 +80,8 @@ esssc_key_name                   = "{{ .KeyPairName }}"
 esssc_role_name                  = "{{ .RAMRoleName }}"
 
 esssc_user_data = <<EOF
-{{ .UserData }}
+{{ .UserData -}}
+
 EOF
 
 esssc_tags_tribe     = "{{ if .Tags.tribe }}{{ index .Tags "tribe" }}{{ end }}"
