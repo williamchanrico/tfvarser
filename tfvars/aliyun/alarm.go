@@ -49,37 +49,37 @@ func (s *Alarm) Execute(w io.Writer, tmpl *template.Template) error {
 
 // Template returns the template
 func (s *Alarm) Template() string {
-	tmpl := `terragrunt = {
-  include {
-    path = "${find_in_parent_folders()}"
-  }
-  terraform {
-    source = "git::git@github.com:tokopedia/tf-alicloud-modules.git//ess-alarm"
-  }
+	tmpl := `include {
+  path = "${find_in_parent_folders()}"
 }
 
-# ESS scaling group (ID: {{ .ScalingGroupID }})
-esssg_remote_state_bucket = "tkpd-tg-alicloud"
-esssg_remote_state_key    = "{{ index .Extras "serviceName" }}/autoscale/ess-scaling-group/terraform.tfstate"
+terraform {
+  source = "git::git@github.com:tokopedia/tf-alicloud-modules.git//ess-alarm"
+}
 
-# ESS scaling rule
-esssr_remote_state_bucket = "tkpd-tg-alicloud"
-esssr_remote_state_key    = "{{ index .Extras "serviceName" }}/autoscale/ess-scaling-rules/{{ trimPrefix .ScalingRule.ScalingRuleName "tf-" }}/terraform.tfstate"
+input = {
+  # ESS Scaling Group (ID: {{ .ScalingGroupID }})
+  esssg_remote_state_bucket = "tkpd-tg-alicloud"
+  esssg_remote_state_key    = "{{ index .Extras "serviceName" }}/autoscale/ess-scaling-group/terraform.tfstate"
 
-# ESS alarm
-essa_name                = "{{ trimPrefix .AlarmName "tf-" }}"
-essa_enable              = {{ .Enable }}
-essa_metric_type         = "{{ .MetricType }}"
-essa_metric_name         = "{{ .MetricName }}"
-essa_period              = {{ .Period }}
-essa_statistics          = "{{ .Statistics }}"
-essa_comparison_operator = "{{ .ComparisonOperator }}"
-essa_threshold           = {{ .Threshold }}
-essa_evaluation_count    = {{ .EvaluationCount }}
+  # ESS Scaling Rule
+  esssr_remote_state_bucket = "tkpd-tg-alicloud"
+  esssr_remote_state_key    = "{{ index .Extras "serviceName" }}/autoscale/ess-scaling-rules/{{ trimPrefix .ScalingRule.ScalingRuleName "tf-" }}/terraform.tfstate"
+
+  # ESS Alarm
+  essa_name                = "{{ trimPrefix .AlarmName "tf-" }}"
+  essa_enable              = {{ .Enable }}
+  essa_metric_type         = "{{ .MetricType }}"
+  essa_metric_name         = "{{ .MetricName }}"
+  essa_period              = {{ .Period }}
+  essa_statistics          = "{{ .Statistics }}"
+  essa_comparison_operator = "{{ .ComparisonOperator }}"
+  essa_threshold           = {{ .Threshold }}
+  essa_evaluation_count    = {{ .EvaluationCount }}
+}
 
 # Import command
-# terragrunt import alicloud_ess_alarm.essa {{ .AlarmID }}
-`
+# terragrunt import alicloud_ess_alarm.essa {{ .AlarmID }}`
 
 	return tmpl
 }

@@ -45,43 +45,43 @@ func (s *ScalingGroup) Execute(w io.Writer, tmpl *template.Template) error {
 
 // Template returns the template
 func (s *ScalingGroup) Template() string {
-	tmpl := `terragrunt = {
-  include {
-    path = "${find_in_parent_folders()}"
-  }
-  terraform {
-    source = "git::git@github.com:tokopedia/tf-alicloud-modules.git//ess-scaling-group"
-  }
+	tmpl := `include {
+  path = "${find_in_parent_folders()}"
 }
 
-# VPC VSwitch
-vsw_remote_state_bucket = "tkpd-tg-alicloud-infra"
-vsw_remote_state_keys   = [
-   "vswitches/app/terraform.tfstate",
-   "vswitches/app-2/terraform.tfstate"
-]
+terraform {
+  source = "git::git@github.com:tokopedia/tf-alicloud-modules.git//ess-scaling-group"
+}
 
-# ESS Scaling Group
-esssg_name = "{{ trimPrefix .ScalingGroupName "tf-" }}"
+input = {
+  # VPC VSwitch
+  vsw_remote_state_bucket = "tkpd-tg-alicloud-infra"
+  vsw_remote_state_keys   = [
+     "vswitches/app/terraform.tfstate",
+     "vswitches/app-2/terraform.tfstate"
+  ]
 
-esssg_min_size = {{ .MinSize }}
-esssg_max_size = {{ .MaxSize }}
+  # ESS Scaling Group
+  esssg_name = "{{ trimPrefix .ScalingGroupName "tf-" }}"
 
-esssg_removal_policies = [
-{{ range $index, $element := .RemovalPolicies }}{{- if $index }},
-{{- end }}{{ if not $index }} {{ end }} "{{ $element -}}"{{ end }}
-]
+  esssg_min_size = {{ .MinSize }}
+  esssg_max_size = {{ .MaxSize }}
 
-esssg_multi_az_policy  = "{{ .MultiAZPolicy }}"
-{{ if .LoadBalancerIDs }}
-esssg_loadbalancer_ids = [
-{{ range $index, $element := .LoadBalancerIDs }}{{- if $index }},
-{{- end }}{{ if not $index }} {{ end }} "{{ $element -}}"{{ end }}
-]
-{{ end }}
+  esssg_removal_policies = [
+  {{ range $index, $element := .RemovalPolicies }}{{- if $index }},
+  {{- end }}{{ if not $index }} {{ end }} "{{ $element -}}"{{ end }}
+  ]
+
+  esssg_multi_az_policy  = "{{ .MultiAZPolicy }}"
+  {{- if .LoadBalancerIDs }}
+  esssg_loadbalancer_ids = [
+  {{ range $index, $element := .LoadBalancerIDs }}{{- if $index }},
+  {{- end }}{{ if not $index }} {{ end }} "{{ $element -}}"{{ end }}
+  ]{{ end }}
+}
+
 # Import command
-# terragrunt import alicloud_ess_scaling_group.esssg {{ .ScalingGroupID }}
-`
+# terragrunt import alicloud_ess_scaling_group.esssg {{ .ScalingGroupID }}`
 
 	return tmpl
 }
