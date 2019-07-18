@@ -53,7 +53,7 @@ terraform {
   source = "git::git@github.com:tokopedia/tf-alicloud-modules.git//ess-scaling-group"
 }
 
-input = {
+inputs = {
   # VPC VSwitch
   vsw_remote_state_bucket = "tkpd-tg-alicloud-infra"
   vsw_remote_state_keys   = [

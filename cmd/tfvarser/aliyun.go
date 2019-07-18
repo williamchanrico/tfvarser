@@ -81,10 +81,10 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 		// Scaling Group
 		scalingGroupDir := path.Join(serviceDir, "ess-scaling-group")
 		sgGenerator := tfvars.New(tfvarsaliyun.NewScalingGroup(sg, extras), funcMap)
-		log.Debugf("Generating %v", path.Join(scalingGroupDir, "terraform.hcl"))
-		err = sgGenerator.Generate(scalingGroupDir, "terraform.hcl")
+		log.Debugf("Generating %v", path.Join(scalingGroupDir, "terragrunt.hcl"))
+		err = sgGenerator.Generate(scalingGroupDir, "terragrunt.hcl")
 		if err != nil {
-			log.Errorf("Error generating %v: %v\n", path.Join(scalingGroupDir, "terraform.hcl"), err.Error())
+			log.Errorf("Error generating %v: %v\n", path.Join(scalingGroupDir, "terragrunt.hcl"), err.Error())
 		}
 
 		// Scaling Rule
@@ -105,10 +105,10 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 
 			scalingRuleDir := path.Join(scalingRuleParentDir, strings.TrimPrefix(sr.ScalingRuleName, "tf-"))
 			srGenerator := tfvars.New(tfvarsaliyun.NewScalingRule(sr, sg, extras), funcMap)
-			log.Debugf("Generating %v", path.Join(scalingRuleDir, "terraform.hcl"))
-			err = srGenerator.Generate(scalingRuleDir, "terraform.hcl")
+			log.Debugf("Generating %v", path.Join(scalingRuleDir, "terragrunt.hcl"))
+			err = srGenerator.Generate(scalingRuleDir, "terragrunt.hcl")
 			if err != nil {
-				log.Errorf("Error generating %v: %v\n", path.Join(scalingRuleDir, "terraform.hcl"), err.Error())
+				log.Errorf("Error generating %v: %v\n", path.Join(scalingRuleDir, "terragrunt.hcl"), err.Error())
 			}
 		}
 
@@ -136,10 +136,10 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 
 			alarmDir := path.Join(alarmParentDir, strings.TrimPrefix(al.AlarmName, "tf-"))
 			alGenerator := tfvars.New(tfvarsaliyun.NewAlarm(al, sg, sr, extras), funcMap)
-			log.Debugf("Generating %v", path.Join(alarmDir, "terraform.hcl"))
-			err = alGenerator.Generate(alarmDir, "terraform.hcl")
+			log.Debugf("Generating %v", path.Join(alarmDir, "terragrunt.hcl"))
+			err = alGenerator.Generate(alarmDir, "terragrunt.hcl")
 			if err != nil {
-				log.Errorf("Error generating %v: %v\n", path.Join(alarmDir, "terraform.hcl"), err.Error())
+				log.Errorf("Error generating %v: %v\n", path.Join(alarmDir, "terragrunt.hcl"), err.Error())
 			}
 		}
 
@@ -160,10 +160,10 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 
 			lifecycleHookDir := path.Join(lifecycleHookParentDir, lh.LifecycleHookName)
 			lhGenerator := tfvars.New(tfvarsaliyun.NewLifecycleHook(lh, sg, extras), funcMap)
-			log.Debugf("Generating %v", path.Join(lifecycleHookDir, "terraform.hcl"))
-			err = lhGenerator.Generate(lifecycleHookDir, "terraform.hcl")
+			log.Debugf("Generating %v", path.Join(lifecycleHookDir, "terragrunt.hcl"))
+			err = lhGenerator.Generate(lifecycleHookDir, "terragrunt.hcl")
 			if err != nil {
-				log.Errorf("Error generating %v: %v\n", path.Join(lifecycleHookDir, "terraform.hcl"), err.Error())
+				log.Errorf("Error generating %v: %v\n", path.Join(lifecycleHookDir, "terragrunt.hcl"), err.Error())
 			}
 		}
 
@@ -183,10 +183,10 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 
 			scalingConfigurationDir := path.Join(scalingConfigurationParentDir, strings.TrimPrefix(sc.ScalingConfigurationName, "tf-"))
 			scGenerator := tfvars.New(tfvarsaliyun.NewScalingConfiguration(sc, sg, extras), funcMap)
-			log.Debugf("Generating %v", path.Join(scalingConfigurationDir, "terraform.hcl"))
-			err = scGenerator.Generate(scalingConfigurationDir, "terraform.hcl")
+			log.Debugf("Generating %v", path.Join(scalingConfigurationDir, "terragrunt.hcl"))
+			err = scGenerator.Generate(scalingConfigurationDir, "terragrunt.hcl")
 			if err != nil {
-				log.Errorf("Error generating %v: %v\n", path.Join(scalingConfigurationDir, "terraform.hcl"), err.Error())
+				log.Errorf("Error generating %v: %v\n", path.Join(scalingConfigurationDir, "terragrunt.hcl"), err.Error())
 			}
 		}
 	}
