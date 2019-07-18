@@ -47,55 +47,54 @@ func (s *ScalingConfiguration) Execute(w io.Writer, tmpl *template.Template) err
 
 // Template returns the template
 func (s *ScalingConfiguration) Template() string {
-	tmpl := `terragrunt = {
-  include {
-    path = "${find_in_parent_folders()}"
-  }
-  terraform {
-    source = "git::git@github.com:tokopedia/tf-alicloud-modules.git//ess-scaling-configuration"
-  }
+	tmpl := `include {
+  path = "${find_in_parent_folders()}"
 }
 
-# ESS Scaling group (ID: {{ .ScalingGroup.ScalingGroupID }})
-esssg_remote_state_bucket = "tkpd-tg-alicloud"
-esssg_remote_state_key    = "{{ index .Extras "serviceName" }}/autoscale/ess-scaling-group/terraform.tfstate"
-
-# ECS Security group
-sg_remote_state_bucket = "tkpd-tg-alicloud-infra"
-sg_remote_state_key    = "security-groups/intranet/security-group/terraform.tfstate"
-
-# ECS Images
-images_name_regex = "^{{ index .Extras "imageName" }}$"
-
-# ESS Scaling configuration
-esssc_scaling_configuration_name = "{{ trimPrefix .ScalingConfigurationName "tf-" }}"
-esssc_instance_name              = "{{ index .Extras "serviceName" }}"
-esssc_instance_types             = [
-{{ range $index, $element := .InstanceTypes }}{{- if $index }},
-{{- end }}{{- if not $index }} {{ end }} "{{ $element -}}"{{ end }}
-]
-esssc_enable                     = {{ .Enable }}
-esssc_active                     = {{ .Active }}
-esssc_key_name                   = "{{ .KeyPairName }}"
-esssc_role_name                  = "{{ .RAMRoleName }}"
-
-esssc_user_data = <<EOF
-{{ .UserData -}}
-
-EOF
-
-esssc_tags_tribe     = "{{ if .Tags.tribe }}{{ index .Tags "tribe" }}{{ end }}"
-esssc_tags_team      = "{{ if .Tags.team }}{{ index .Tags "team" }}{{ end }}"
-esssc_tags_hostgroup = "{{ if .Tags.hostgroup }}{{ index .Tags "hostgroup" }}{{ end }}"
-esssc_tags_type      = "{{ if .Tags.type }}{{ index .Tags "type" }}{{ end }}"
-{{ if .Tags.consul_tags }}
-esssc_optional_tags = {
-  "consul_tags" = "{{ index .Tags "consul_tags" }}"
+terraform {
+  source = "git::git@github.com:tokopedia/tf-alicloud-modules.git//ess-scaling-configuration"
 }
-{{ end }}
+
+input = {
+  # ESS Scaling Group (ID: {{ .ScalingGroup.ScalingGroupID }})
+  esssg_remote_state_bucket = "tkpd-tg-alicloud"
+  esssg_remote_state_key    = "{{ index .Extras "serviceName" }}/autoscale/ess-scaling-group/terraform.tfstate"
+
+  # ECS Security Group
+  sg_remote_state_bucket = "tkpd-tg-alicloud-infra"
+  sg_remote_state_key    = "security-groups/intranet/security-group/terraform.tfstate"
+
+  # ECS Images
+  images_name_regex = "^{{ index .Extras "imageName" }}$"
+
+  # ESS Scaling configuration
+  esssc_scaling_configuration_name = "{{ trimPrefix .ScalingConfigurationName "tf-" }}"
+  esssc_instance_name              = "{{ index .Extras "serviceName" }}"
+  esssc_instance_types             = [
+  {{ range $index, $element := .InstanceTypes }}{{- if $index }},
+  {{- end }}{{- if not $index }} {{ end }} "{{ $element -}}"{{ end }}
+  ]
+  esssc_enable                     = {{ .Enable }}
+  esssc_active                     = {{ .Active }}
+  esssc_key_name                   = "{{ .KeyPairName }}"
+  esssc_role_name                  = "{{ .RAMRoleName }}"
+
+  esssc_user_data = <<EOF
+{{ printf "%s" .UserData -}}
+{{ printf "\n  %s" "EOF" }}
+
+  esssc_tags_tribe     = "{{ if .Tags.tribe }}{{ index .Tags "tribe" }}{{ end }}"
+  esssc_tags_team      = "{{ if .Tags.team }}{{ index .Tags "team" }}{{ end }}"
+  esssc_tags_hostgroup = "{{ if .Tags.hostgroup }}{{ index .Tags "hostgroup" }}{{ end }}"
+  esssc_tags_type      = "{{ if .Tags.type }}{{ index .Tags "type" }}{{ end }}"
+  {{- if .Tags.consul_tags }}
+  esssc_optional_tags = {
+    "consul_tags" = "{{ index .Tags "consul_tags" }}"
+  }{{ end }}
+}
+
 # Import command
-# terragrunt import alicloud_ess_scaling_configuration.esssc {{ .ScalingConfigurationID }}
-`
+# terragrunt import alicloud_ess_scaling_configuration.esssc {{ .ScalingConfigurationID }}`
 
 	return tmpl
 }

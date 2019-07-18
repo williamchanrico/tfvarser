@@ -47,28 +47,28 @@ func (s *ScalingRule) Execute(w io.Writer, tmpl *template.Template) error {
 
 // Template returns the template
 func (s *ScalingRule) Template() string {
-	tmpl := `terragrunt = {
-  include {
-    path = "${find_in_parent_folders()}"
-  }
-  terraform {
-    source = "git::git@github.com:tokopedia/tf-alicloud-modules.git//ess-scaling-rule"
-  }
+	tmpl := `include {
+  path = "${find_in_parent_folders()}"
 }
 
-# ESS scaling group (ID: {{ .ScalingGroup.ScalingGroupID }})
-esssg_remote_state_bucket = "tkpd-tg-alicloud"
-esssg_remote_state_key    = "{{ index .Extras "serviceName" }}/autoscale/ess-scaling-group/terraform.tfstate"
+terraform {
+  source = "git::git@github.com:tokopedia/tf-alicloud-modules.git//ess-scaling-rule"
+}
 
-# ESS scaling rule
-esssr_scaling_rule_name = "{{ trimPrefix .ScalingRuleName "tf-" }}"
-esssr_adjustment_type   = "{{ .AdjustmentType }}"
-esssr_adjustment_value  = "{{ .AdjustmentValue }}"
-esssr_cooldown          = {{ .Cooldown }}
+input = {
+  # ESS Scaling Group (ID: {{ .ScalingGroup.ScalingGroupID }})
+  esssg_remote_state_bucket = "tkpd-tg-alicloud"
+  esssg_remote_state_key    = "{{ index .Extras "serviceName" }}/autoscale/ess-scaling-group/terraform.tfstate"
+
+  # ESS Scaling Rule
+  esssr_scaling_rule_name = "{{ trimPrefix .ScalingRuleName "tf-" }}"
+  esssr_adjustment_type   = "{{ .AdjustmentType }}"
+  esssr_adjustment_value  = "{{ .AdjustmentValue }}"
+  esssr_cooldown          = {{ .Cooldown }}
+}
 
 # Import command
-# terragrunt import alicloud_ess_scaling_rule.esssr {{ .ScalingRuleID }}
-`
+# terragrunt import alicloud_ess_scaling_rule.esssr {{ .ScalingRuleID }}`
 
 	return tmpl
 }
