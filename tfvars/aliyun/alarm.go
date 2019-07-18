@@ -57,7 +57,7 @@ terraform {
   source = "git::git@github.com:tokopedia/tf-alicloud-modules.git//ess-alarm"
 }
 
-input = {
+inputs = {
   # ESS Scaling Group (ID: {{ .ScalingGroupID }})
   esssg_remote_state_bucket = "tkpd-tg-alicloud"
   esssg_remote_state_key    = "{{ index .Extras "serviceName" }}/autoscale/ess-scaling-group/terraform.tfstate"
