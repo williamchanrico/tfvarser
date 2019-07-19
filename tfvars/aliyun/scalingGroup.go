@@ -78,10 +78,7 @@ inputs = {
   {{ range $index, $element := .LoadBalancerIDs }}{{- if $index }},
   {{- end }}{{ if not $index }} {{ end }} "{{ $element -}}"{{ end }}
   ]{{ end }}
-}
-
-# Import command
-# terragrunt import alicloud_ess_scaling_group.esssg {{ .ScalingGroupID }}`
+}`
 
 	return tmpl
 }

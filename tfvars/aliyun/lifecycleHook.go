@@ -56,7 +56,7 @@ terraform {
 }
 
 inputs = {
-  # ESS Scaling Group (ID: {{ .ScalingGroup.ScalingGroupID }})
+  # ESS Scaling Group
   esssg_remote_state_bucket = "tkpd-tg-alicloud"
   esssg_remote_state_key    = "{{ index .Extras "serviceName" }}/autoscale/ess-scaling-group/terraform.tfstate"
 
@@ -69,10 +69,7 @@ inputs = {
   esslh_lifecycle_transition = "{{ .LifecycleTransition }}"
   esslh_default_result       = "{{ .DefaultResult }}"
   esslh_heartbeat_timeout    = {{ .HeartbeatTimeout }}
-}
-
-# Import command
-# terragrunt import alicloud_ess_lifecycle_hook.esslh {{ .LifecycleHookID }}`
+}`
 
 	return tmpl
 }

@@ -56,7 +56,7 @@ terraform {
 }
 
 inputs = {
-  # ESS Scaling Group (ID: {{ .ScalingGroup.ScalingGroupID }})
+  # ESS Scaling Group
   esssg_remote_state_bucket = "tkpd-tg-alicloud"
   esssg_remote_state_key    = "{{ index .Extras "serviceName" }}/autoscale/ess-scaling-group/terraform.tfstate"
 
@@ -91,10 +91,7 @@ inputs = {
   esssc_optional_tags = {
     "consul_tags" = "{{ index .Tags "consul_tags" }}"
   }{{ end }}
-}
-
-# Import command
-# terragrunt import alicloud_ess_scaling_configuration.esssc {{ .ScalingConfigurationID }}`
+}`
 
 	return tmpl
 }
