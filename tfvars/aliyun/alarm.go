@@ -58,7 +58,7 @@ terraform {
 }
 
 inputs = {
-  # ESS Scaling Group (ID: {{ .ScalingGroupID }})
+  # ESS Scaling Group
   esssg_remote_state_bucket = "tkpd-tg-alicloud"
   esssg_remote_state_key    = "{{ index .Extras "serviceName" }}/autoscale/ess-scaling-group/terraform.tfstate"
 
@@ -76,10 +76,7 @@ inputs = {
   essa_comparison_operator = "{{ .ComparisonOperator }}"
   essa_threshold           = {{ .Threshold }}
   essa_evaluation_count    = {{ .EvaluationCount }}
-}
-
-# Import command
-# terragrunt import alicloud_ess_alarm.essa {{ .AlarmID }}`
+}`
 
 	return tmpl
 }
