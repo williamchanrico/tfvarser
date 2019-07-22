@@ -32,12 +32,17 @@ func NewLifecycleHook(lh ess.LifecycleHook, sg ess.ScalingGroup, extras map[stri
 
 // Name returns the name of this tfvars generator
 func (s *LifecycleHook) Name() string {
-	return fmt.Sprintf("%s-%s", s.Kind(), s.LifecycleHookName)
+	return fmt.Sprintf("%s-%s-%s", s.Provider(), s.Kind(), s.LifecycleHookName)
 }
 
-// Kind returns the key reference to this provider and object
+// Provider returns the key reference to this provider
+func (s *LifecycleHook) Provider() string {
+	return fmt.Sprintf("%s", Provider)
+}
+
+// Kind returns the key reference to this object
 func (s *LifecycleHook) Kind() string {
-	return fmt.Sprintf("%s-%s", Provider, LifecycleHookKey)
+	return fmt.Sprintf("%s", LifecycleHookKey)
 }
 
 // Execute a lifecycle hook raw string
@@ -46,30 +51,30 @@ func (s *LifecycleHook) Execute(w io.Writer, tmpl *template.Template) error {
 }
 
 // Template returns the template
-func (s *LifecycleHook) Template() string {
-	tmpl := `include {
-  path = "${find_in_parent_folders()}"
-}
+// func (s *LifecycleHook) Template() string {
+//     tmpl := `include {
+//   path = "${find_in_parent_folders()}"
+// }
 
-terraform {
-  source = "git::git@github.com:tokopedia/tf-alicloud-modules.git//ess-lifecycle-hook"
-}
+// terraform {
+//   source = "git::git@github.com:tokopedia/tf-alicloud-modules.git//ess-lifecycle-hook"
+// }
 
-inputs = {
-  # ESS Scaling Group
-  esssg_remote_state_bucket = "tkpd-tg-alicloud"
-  esssg_remote_state_key    = "{{ index .Extras "serviceName" }}/autoscale/ess-scaling-group/terraform.tfstate"
+// inputs = {
+//   # ESS Scaling Group
+//   esssg_remote_state_bucket = "tkpd-tg-alicloud"
+//   esssg_remote_state_key    = "{{ index .Extras "serviceName" }}/autoscale/ess-scaling-group/terraform.tfstate"
 
-  # MNS Queue
-  mq_remote_state_bucket = "tkpd-tg-alicloud"
-  mq_remote_state_key    = "general/mns-queues/{{ if eq .LifecycleTransition "SCALE_IN" }}autoscaledown-event{{ else }}autoscaleup-event{{ end }}/terraform.tfstate"
+//   # MNS Queue
+//   mq_remote_state_bucket = "tkpd-tg-alicloud"
+//   mq_remote_state_key    = "general/mns-queues/{{ if eq .LifecycleTransition "SCALE_IN" }}autoscaledown-event{{ else }}autoscaleup-event{{ end }}/terraform.tfstate"
 
-  # ESS Lifecycle Hook
-  esslh_name                 = "{{ .LifecycleHookName }}"
-  esslh_lifecycle_transition = "{{ .LifecycleTransition }}"
-  esslh_default_result       = "{{ .DefaultResult }}"
-  esslh_heartbeat_timeout    = {{ .HeartbeatTimeout }}
-}`
+//   # ESS Lifecycle Hook
+//   esslh_name                 = "{{ .LifecycleHookName }}"
+//   esslh_lifecycle_transition = "{{ .LifecycleTransition }}"
+//   esslh_default_result       = "{{ .DefaultResult }}"
+//   esslh_heartbeat_timeout    = {{ .HeartbeatTimeout }}
+// }`
 
-	return tmpl
-}
+//     return tmpl
+// }
