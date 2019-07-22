@@ -3,7 +3,9 @@ package tfvarser
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"path"
+	"path/filepath"
 	"strings"
 	"text/template"
 	"time"
@@ -79,8 +81,16 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 		serviceDir := path.Join(".", extras["serviceName"].(string), "autoscale")
 
 		// Scaling Group
-		scalingGroupDir := path.Join(serviceDir, "ess-scaling-group")
-		sgGenerator := tfvars.New(tfvarsaliyun.NewScalingGroup(sg, extras), funcMap)
+		tfvarsSG := tfvarsaliyun.NewScalingGroup(sg, extras)
+
+		tmplSG, err := ioutil.ReadFile(filepath.Join(appFlags.TemplateDir, tfvarsSG.Provider(), tfvarsSG.Kind()+".tmpl"))
+		if err != nil {
+			return 1, err
+		}
+
+		scalingGroupDir := path.Join(serviceDir, tfvarsSG.Kind())
+
+		sgGenerator := tfvars.New(tfvarsSG, string(tmplSG), funcMap)
 		log.Debugf("Generating %v", path.Join(scalingGroupDir, "terragrunt.hcl"))
 		err = sgGenerator.Generate(scalingGroupDir, "terragrunt.hcl")
 		if err != nil {
@@ -93,7 +103,6 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 		if err != nil {
 			return 1, err
 		}
-		scalingRuleParentDir := path.Join(serviceDir, "ess-scaling-rules")
 		for _, sr := range scalingRules {
 			// Replace scaling rule name with auto-{upscale/downscale} instead
 			// when matched a criteria
@@ -103,8 +112,17 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 				sr.ScalingRuleName = "auto-upscale"
 			}
 
+			tfvarsSR := tfvarsaliyun.NewScalingRule(sr, sg, extras)
+
+			tmplSR, err := ioutil.ReadFile(filepath.Join(appFlags.TemplateDir, tfvarsSR.Provider(), tfvarsSR.Kind()+".tmpl"))
+			if err != nil {
+				return 1, err
+			}
+
+			scalingRuleParentDir := path.Join(serviceDir, tfvarsSR.Kind())
 			scalingRuleDir := path.Join(scalingRuleParentDir, strings.TrimPrefix(sr.ScalingRuleName, "tf-"))
-			srGenerator := tfvars.New(tfvarsaliyun.NewScalingRule(sr, sg, extras), funcMap)
+
+			srGenerator := tfvars.New(tfvarsSR, string(tmplSR), funcMap)
 			log.Debugf("Generating %v", path.Join(scalingRuleDir, "terragrunt.hcl"))
 			err = srGenerator.Generate(scalingRuleDir, "terragrunt.hcl")
 			if err != nil {
@@ -118,7 +136,6 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 		if err != nil {
 			return 1, nil
 		}
-		alarmParentDir := path.Join(serviceDir, "ess-alarms")
 		for _, al := range alarms {
 			// An alarm may have scaling rules, and we want them if they exist
 			sr := ess.ScalingRule{}
@@ -134,8 +151,17 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 				}
 			}
 
+			tfvarsAL := tfvarsaliyun.NewAlarm(al, sg, sr, extras)
+
+			tmplAL, err := ioutil.ReadFile(filepath.Join(appFlags.TemplateDir, tfvarsAL.Provider(), tfvarsAL.Kind()+".tmpl"))
+			if err != nil {
+				return 1, err
+			}
+
+			alarmParentDir := path.Join(serviceDir, tfvarsAL.Kind())
 			alarmDir := path.Join(alarmParentDir, strings.TrimPrefix(al.AlarmName, "tf-"))
-			alGenerator := tfvars.New(tfvarsaliyun.NewAlarm(al, sg, sr, extras), funcMap)
+
+			alGenerator := tfvars.New(tfvarsAL, string(tmplAL), funcMap)
 			log.Debugf("Generating %v", path.Join(alarmDir, "terragrunt.hcl"))
 			err = alGenerator.Generate(alarmDir, "terragrunt.hcl")
 			if err != nil {
@@ -149,7 +175,6 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 		if err != nil {
 			return 1, nil
 		}
-		lifecycleHookParentDir := path.Join(serviceDir, "ess-lifecycle-hooks")
 		for _, lh := range lifecycleHooks {
 			// Use predefined name for LH, autoscale{up/down}-event-mns-queue
 			if lh.LifecycleTransition == "SCALE_IN" {
@@ -158,8 +183,17 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 				lh.LifecycleHookName = "autoscaleup-event-mns-queue"
 			}
 
+			tfvarsLH := tfvarsaliyun.NewLifecycleHook(lh, sg, extras)
+
+			tmplLH, err := ioutil.ReadFile(filepath.Join(appFlags.TemplateDir, tfvarsLH.Provider(), tfvarsLH.Kind()+".tmpl"))
+			if err != nil {
+				return 1, err
+			}
+
+			lifecycleHookParentDir := path.Join(serviceDir, tfvarsLH.Kind())
 			lifecycleHookDir := path.Join(lifecycleHookParentDir, lh.LifecycleHookName)
-			lhGenerator := tfvars.New(tfvarsaliyun.NewLifecycleHook(lh, sg, extras), funcMap)
+
+			lhGenerator := tfvars.New(tfvarsLH, string(tmplLH), funcMap)
 			log.Debugf("Generating %v", path.Join(lifecycleHookDir, "terragrunt.hcl"))
 			err = lhGenerator.Generate(lifecycleHookDir, "terragrunt.hcl")
 			if err != nil {
@@ -181,8 +215,16 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 				extras["imageName"] = "IMAGE_NOT_FOUND_REPLACE_ME"
 			}
 
+			tfvarsSC := tfvarsaliyun.NewScalingConfiguration(sc, sg, extras)
+
+			tmplSC, err := ioutil.ReadFile(filepath.Join(appFlags.TemplateDir, tfvarsSC.Provider(), tfvarsSC.Kind()+".tmpl"))
+			if err != nil {
+				return 1, err
+			}
+
 			scalingConfigurationDir := path.Join(scalingConfigurationParentDir, strings.TrimPrefix(sc.ScalingConfigurationName, "tf-"))
-			scGenerator := tfvars.New(tfvarsaliyun.NewScalingConfiguration(sc, sg, extras), funcMap)
+
+			scGenerator := tfvars.New(tfvarsSC, string(tmplSC), funcMap)
 			log.Debugf("Generating %v", path.Join(scalingConfigurationDir, "terragrunt.hcl"))
 			err = scGenerator.Generate(scalingConfigurationDir, "terragrunt.hcl")
 			if err != nil {

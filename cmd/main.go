@@ -22,6 +22,7 @@ func main() {
 	flag.StringVar(&appFlags.ProviderObj, "obj", "ess", "Object in cloud provider to import")
 	flag.StringVar(&appFlags.LimitNames, "limit-names", "", "Limit generation of objects with the exact names (separated by comma or space)")
 	flag.StringVar(&appFlags.LimitIDs, "limit-ids", "", "Limit generation of objects with the exact IDs (separated by comma or space)")
+	flag.StringVar(&appFlags.TemplateDir, "template-dir", "./.tfvarser/templates", "Specify the directory to load tfvars templates")
 
 	flag.BoolVar(&quiet, "quiet", false, "Disable verbose output")
 	flag.BoolVar(&showVersionAndExit, "version", false, "Show version and exit")
