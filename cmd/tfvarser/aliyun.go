@@ -119,7 +119,7 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 				return 1, err
 			}
 
-			scalingRuleParentDir := path.Join(serviceDir, tfvarsSR.Kind())
+			scalingRuleParentDir := path.Join(serviceDir, tfvarsSR.Kind()+"s")
 			scalingRuleDir := path.Join(scalingRuleParentDir, strings.TrimPrefix(sr.ScalingRuleName, "tf-"))
 
 			srGenerator := tfvars.New(tfvarsSR, string(tmplSR), funcMap)
@@ -158,7 +158,7 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 				return 1, err
 			}
 
-			alarmParentDir := path.Join(serviceDir, tfvarsAL.Kind())
+			alarmParentDir := path.Join(serviceDir, tfvarsAL.Kind()+"s")
 			alarmDir := path.Join(alarmParentDir, strings.TrimPrefix(al.AlarmName, "tf-"))
 
 			alGenerator := tfvars.New(tfvarsAL, string(tmplAL), funcMap)
@@ -190,7 +190,7 @@ func aliyunAutoscaleObjects(appFlags *Flags, cfg Config) (int, error) {
 				return 1, err
 			}
 
-			lifecycleHookParentDir := path.Join(serviceDir, tfvarsLH.Kind())
+			lifecycleHookParentDir := path.Join(serviceDir, tfvarsLH.Kind()+"s")
 			lifecycleHookDir := path.Join(lifecycleHookParentDir, lh.LifecycleHookName)
 
 			lhGenerator := tfvars.New(tfvarsLH, string(tmplLH), funcMap)
